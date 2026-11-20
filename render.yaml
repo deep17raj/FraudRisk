@@ -1,0 +1,26 @@
+# Render blueprint.
+# NOTE: the free web-service tier sleeps after ~15 min idle (30-60 s cold start), which will
+# fail Telegraph's spot-checks and can cost you routing. Use the paid "starter" instance below,
+# or keep a pinger hitting /healthz.
+services:
+  - type: web
+    name: sentinel-fraud-risk
+    runtime: docker
+    plan: starter
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: IPINFO_TOKEN
+        sync: false
+      - key: IP2LOCATION_KEY
+        sync: false
+      - key: ANTHROPIC_MODEL
+        value: claude-opus-5-5
+      - key: ANTHROPIC_EFFORT
+        value: low
+      - key: REASONING_MODE
+        value: auto
+      - key: LOG_LEVEL
+        value: INFO

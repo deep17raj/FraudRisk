@@ -1,0 +1,320 @@
+{
+  "_comment": [
+    "Regression fixtures. FRAUD_RISK_GENERAL is a judgment intent, so each case asserts an",
+    "ALLOWED BAND rather than one exact score: the grade must be defensible, not identical to",
+    "a stored number. `must_abstain` additionally requires score 0.0 and a summary that admits",
+    "the absence of evidence - those cases exist to prove the service does not invent red flags.",
+    "`require_signal_ids` pins the evidence that must be cited; `forbid_signal_ids` pins what",
+    "must NOT appear (the negation cases)."
+  ],
+  "cases": [
+    {
+      "name": "clear_high_ato_new_account_vpn_new_payee",
+      "subject": "New account created 2 days ago, login from a Dutch VPN, first transfer of $4,200 to a new payee",
+      "allow": [
+        "HIGH",
+        "CRITICAL"
+      ],
+      "require_signal_ids": [
+        "behav.first_transfer_new_payee",
+        "behav.very_new_account",
+        "behav.anonymiser"
+      ],
+      "expect_pattern_in": [
+        "account takeover",
+        "authorised push payment scam",
+        "anonymised access"
+      ]
+    },
+    {
+      "name": "critical_tor_exit_plus_ato_behaviour",
+      "subject": "Account opened 1 day ago, login from 185.220.101.1, immediate transfer of $9,500 to a new payee after a password reset",
+      "allow": [
+        "CRITICAL"
+      ],
+      "require_signal_ids": [
+        "anon.tor_exit",
+        "behav.credential_reset"
+      ],
+      "expect_corroborated": true
+    },
+    {
+      "name": "clear_low_returning_customer",
+      "subject": "Returning customer of 5 years, same device, regular monthly payment of $80 to an existing payee, no chargebacks",
+      "allow": [
+        "LOW"
+      ],
+      "forbid_signal_ids": [
+        "behav.new_payee",
+        "behav.first_transfer_new_payee",
+        "behav.anonymiser"
+      ]
+    },
+    {
+      "name": "clear_low_explicit_denials",
+      "subject": "Account is 5 years old, not a new payee, no VPN used, same device as always, no chargebacks on record",
+      "allow": [
+        "LOW"
+      ],
+      "forbid_signal_ids": [
+        "behav.new_payee",
+        "behav.anonymiser",
+        "behav.device_change",
+        "behav.chargebacks"
+      ]
+    },
+    {
+      "name": "card_testing_prepaid_bin_many_small_attempts",
+      "subject": "Prepaid card BIN 517805, 14 declined attempts of $1.00 each within three minutes",
+      "allow": [
+        "HIGH",
+        "CRITICAL"
+      ],
+      "require_signal_ids": [
+        "card.prepaid_bin",
+        "behav.card_testing_shape"
+      ],
+      "expect_pattern_in": [
+        "card testing"
+      ],
+      "expect_corroborated": true
+    },
+    {
+      "name": "card_testing_velocity_only",
+      "subject": "22 consecutive declined authorisations on one card in two minutes",
+      "allow": [
+        "MEDIUM",
+        "HIGH"
+      ],
+      "require_signal_ids": [
+        "behav.velocity"
+      ]
+    },
+    {
+      "name": "phishing_url_on_live_feed",
+      "subject": "http://paypal-verify.secure-login.tk/account",
+      "allow": [
+        "HIGH",
+        "CRITICAL"
+      ],
+      "require_signal_ids": [
+        "phish.feed_hit"
+      ],
+      "expect_pattern_in": [
+        "phishing"
+      ]
+    },
+    {
+      "name": "phishing_shaped_domain_not_on_any_feed",
+      "subject": "secure-paypal-login-verify.tk",
+      "allow": [
+        "MEDIUM",
+        "HIGH"
+      ],
+      "require_signal_ids": [
+        "domain.abused_tld"
+      ],
+      "expect_pattern_in": [
+        "phishing"
+      ]
+    },
+    {
+      "name": "legitimate_domain_is_not_smeared",
+      "subject": "paypal.com",
+      "allow": [
+        "LOW"
+      ],
+      "require_signal_ids": [
+        "domain.known_legit"
+      ],
+      "forbid_signal_ids": [
+        "domain.brand_lure",
+        "domain.brand_term",
+        "phish.feed_hit"
+      ]
+    },
+    {
+      "name": "tor_exit_ip_alone",
+      "subject": "185.220.101.1",
+      "allow": [
+        "MEDIUM",
+        "HIGH"
+      ],
+      "require_signal_ids": [
+        "anon.tor_exit"
+      ],
+      "expect_pattern_in": [
+        "anonymised access"
+      ]
+    },
+    {
+      "name": "mule_account_forwarding",
+      "subject": "Customer received an unexpected $12,000 deposit and immediately forwarded the funds to a third party overseas",
+      "allow": [
+        "MEDIUM",
+        "HIGH",
+        "CRITICAL"
+      ],
+      "require_signal_ids": [
+        "behav.third_party_payout"
+      ],
+      "expect_pattern_in": [
+        "money mule activity"
+      ]
+    },
+    {
+      "name": "social_engineering_app_scam",
+      "subject": "Customer was told urgently to move $6,500 to a new payee today and to keep the transfer confidential",
+      "allow": [
+        "MEDIUM",
+        "HIGH",
+        "CRITICAL"
+      ],
+      "require_signal_ids": [
+        "behav.urgency"
+      ],
+      "expect_pattern_in": [
+        "authorised push payment scam",
+        "account takeover"
+      ]
+    },
+    {
+      "name": "account_takeover_sequence",
+      "subject": "Password and 2FA were changed from an unrecognised device, then a transfer was made to a new payee",
+      "allow": [
+        "HIGH",
+        "CRITICAL"
+      ],
+      "require_signal_ids": [
+        "behav.ato_sequence"
+      ],
+      "expect_pattern_in": [
+        "account takeover"
+      ]
+    },
+    {
+      "name": "first_party_fraud_chargebacks",
+      "subject": "Returning buyer with four prior chargebacks disputing a $300 order again",
+      "allow": [
+        "LOW",
+        "MEDIUM"
+      ],
+      "require_signal_ids": [
+        "behav.chargebacks"
+      ]
+    },
+    {
+      "name": "synthetic_identity_disposable_email",
+      "subject": "Signup from user9918273@mailinator.com on a brand new account",
+      "allow": [
+        "MEDIUM",
+        "HIGH"
+      ],
+      "require_signal_ids": [
+        "identity.disposable_email"
+      ],
+      "expect_pattern_in": [
+        "synthetic identity"
+      ]
+    },
+    {
+      "name": "ordinary_bin_lookup_is_not_a_red_flag",
+      "subject": "BIN 457173",
+      "allow": [
+        "LOW"
+      ],
+      "require_signal_ids": [
+        "card.bin_metadata"
+      ],
+      "forbid_signal_ids": [
+        "card.prepaid_bin"
+      ]
+    },
+    {
+      "name": "modest_payment_is_not_escalated",
+      "subject": "A $45 payment to an existing payee from the usual device",
+      "allow": [
+        "LOW"
+      ]
+    },
+    {
+      "name": "wallet_address_no_source_covers_it",
+      "subject": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+      "allow": [
+        "LOW"
+      ],
+      "must_abstain": true
+    },
+    {
+      "name": "payroll_batch_is_not_velocity",
+      "subject": "Payroll run of 40 payments to the same employees as last month",
+      "allow": [
+        "LOW"
+      ],
+      "forbid_signal_ids": [
+        "behav.velocity",
+        "behav.card_testing_shape"
+      ]
+    },
+    {
+      "name": "legitimate_brand_cctld_is_not_impersonation",
+      "subject": "amazon.de",
+      "allow": [
+        "LOW"
+      ],
+      "forbid_signal_ids": [
+        "domain.brand_lure",
+        "domain.brand_term",
+        "phish.feed_hit"
+      ]
+    },
+    {
+      "name": "deviation_from_a_stated_baseline",
+      "subject": "Customer normally pays an existing payee from the same device, but today sent $5,000 to a new payee from a new device",
+      "allow": [
+        "MEDIUM",
+        "HIGH"
+      ],
+      "require_signal_ids": [
+        "behav.new_payee",
+        "behav.device_change"
+      ],
+      "forbid_signal_ids": [
+        "behav.known_payee",
+        "behav.same_device"
+      ]
+    },
+    {
+      "name": "vague_check_this_person",
+      "subject": "check this person",
+      "allow": [
+        "LOW"
+      ],
+      "must_abstain": true
+    },
+    {
+      "name": "vague_is_this_safe",
+      "subject": "Is this safe?",
+      "allow": [
+        "LOW"
+      ],
+      "must_abstain": true
+    },
+    {
+      "name": "vague_bare_name",
+      "subject": "John Smith",
+      "allow": [
+        "LOW"
+      ],
+      "must_abstain": true
+    },
+    {
+      "name": "vague_assess_the_transaction",
+      "subject": "Please assess this transaction",
+      "allow": [
+        "LOW"
+      ],
+      "must_abstain": true
+    }
+  ]
+}

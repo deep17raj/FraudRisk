@@ -1,0 +1,33 @@
+version: "1"
+kind: miner
+id: 58316447
+slug: sentinel-fraud-risk
+protocol: generic
+name: Sentinel Fraud Risk
+description: Multi-signal fraud risk assessment that fuses IP reputation, Tor/VPN exposure, domain and phishing-feed reputation, card-BIN metadata and behavioural pattern rules into a graded risk level, names the fraud pattern the evidence matches, and abstains honestly when evidence is insufficient.
+base_url: https://REPLACE-WITH-YOUR-DEPLOYED-HOST
+
+auth:
+  type: none
+
+endpoints:
+  - path: /fraud-risk
+    external_path: /fraud-risk
+    method: POST
+    description: Assesses fraud risk for a subject (an IP, payment, card BIN, account, email, domain, wallet or described scenario), fusing multiple independent signals into a graded risk level with named signals and a fraud-pattern summary.
+    intents: [FRAUD_RISK_GENERAL]
+    params:
+      body:
+        required:
+          - name: subject
+            type: string
+            intents: ["*"]
+            description: "The entity, payment, account or scenario to assess for fraud risk. Free text; may be an IP, card BIN, email, domain, wallet address, or a described transaction/behaviour."
+
+semantics:
+  signal_mapping:
+    label_field: risk_level
+    confidence_field: risk_score
+    reason_field: summary
+  supported_intents:
+    - FRAUD_RISK_GENERAL

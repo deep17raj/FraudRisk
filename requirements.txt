@@ -1,0 +1,6 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+httpx[http2]>=0.27
+pydantic>=2.6
+anthropic>=0.40
+pyyaml>=6.0
