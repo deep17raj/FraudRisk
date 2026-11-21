@@ -5,7 +5,7 @@ slug: sentinel-fraud-risk
 protocol: generic
 name: Sentinel Fraud Risk
 description: Multi-signal fraud risk assessment that fuses IP reputation, Tor/VPN exposure, domain and phishing-feed reputation, card-BIN metadata and behavioural pattern rules into a graded risk level, names the fraud pattern the evidence matches, and abstains honestly when evidence is insufficient.
-base_url: https://REPLACE-WITH-YOUR-DEPLOYED-HOST
+base_url: https://fraudrisk.onrender.com/
 
 auth:
   type: none
