@@ -22,7 +22,7 @@ YAML_FILE="${YAML_FILE:-miner.yaml}"
 MIN_PRICE="${MIN_PRICE:-10000}"
 BOND_APPROVE="${BOND_APPROVE:-10000000000000000000}"
 NODE="${NODE:-https://devnode.telegraphprotocol.com}"
-INTENTS='["FRAUD_RISK_GENERAL"]'
+INTENTS='["FRAUD_RISK_GENERAL","FACT_CHECK_GENERAL","CONTRACT_OBLIGATION_AUDIT_GENERAL"]'
 
 die() { echo "ERROR: $*" >&2; exit 1; }
 
@@ -50,16 +50,22 @@ MY_ID="$(awk '/^id:/ {print $2; exit}' "$YAML_FILE")"
 MY_SLUG="$(awk '/^slug:/ {print $2; exit}' "$YAML_FILE")"
 echo "Miner: id=$MY_ID slug=$MY_SLUG"
 
-echo "-> checking the deployed endpoint answers before registering ..."
+echo "-> checking every deployed endpoint answers before registering ..."
 BASE_URL="$(awk '/^base_url:/ {print $2; exit}' "$YAML_FILE")"
-PROBE="$(curl -fsS --max-time 20 -X POST "$BASE_URL/fraud-risk" \
-  -H 'Content-Type: application/json' \
-  -d '{"subject":"registration smoke test: a first transfer to a new payee"}' || true)"
-case "$PROBE" in
-  *'"risk_level"'*'"risk_score"'*) echo "   endpoint OK" ;;
-  "") die "$BASE_URL/fraud-risk returned nothing - Telegraph revokes miners whose endpoint is silent" ;;
-  *) die "$BASE_URL/fraud-risk did not return the intent fields. Got: ${PROBE:0:200}" ;;
-esac
+BASE_URL="${BASE_URL%/}"
+probe() {  # probe <path> <json body> <field regex> <field regex> ...
+  local path="$1" body="$2"; shift 2
+  local out
+  out="$(curl -fsS --max-time 40 -X POST "$BASE_URL$path" -H 'Content-Type: application/json' -d "$body" || true)"
+  [ -n "$out" ] || die "$BASE_URL$path returned nothing - Telegraph revokes miners whose endpoint is silent"
+  for f in "$@"; do
+    case "$out" in *"\"$f\""*) ;; *) die "$BASE_URL$path did not return the field '$f'. Got: ${out:0:200}" ;; esac
+  done
+  echo "   $path OK"
+}
+probe /fraud-risk '{"subject":"registration smoke test: a first transfer to a new payee"}' risk_level risk_score signals summary
+probe /fact-check '{"claim":"The Eiffel Tower is in Paris."}' claim verdict reasoning sources
+probe /audit '{"contract":"1.1 The Supplier shall deliver the Goods by 1 March 2026. 1.2 The Buyer shall pay GBP 10,000 within thirty (30) days of invoice."}' verdict obligations clauses summary
 
 echo "-> checking id/slug are unused on $NODE ..."
 if LIST="$(curl -fsS --max-time 120 "$NODE/api/miners")"; then
@@ -71,9 +77,10 @@ else
   echo "   The dry run below still reverts if the id or slug is taken, so this is not fatal."
 fi
 
-echo "-> checking FRAUD_RISK_GENERAL is a canonical intent ..."
-[ "$(cast call "$DIAMOND" "isCanonicalIntent(string)(bool)" "FRAUD_RISK_GENERAL" --rpc-url "$RPC")" = "true" ] \
-  || die "FRAUD_RISK_GENERAL is not canonical on this Diamond (wrong DIAMOND/RPC?)"
+for INTENT in FRAUD_RISK_GENERAL FACT_CHECK_GENERAL CONTRACT_OBLIGATION_AUDIT_GENERAL; do
+  echo "-> checking $INTENT is a canonical intent ..."
+  [ "$(cast call "$DIAMOND" "isCanonicalIntent(string)(bool)" "$INTENT" --rpc-url "$RPC")" = "true" ]     || die "$INTENT is not canonical on this Diamond (wrong DIAMOND/RPC?)"
+done
 
 # ---- 1. hash --------------------------------------------------------------------------------
 YAML_HASH="0x$(sha256_of < "$YAML_FILE")"          # SHA-256 (NOT keccak) of the raw bytes

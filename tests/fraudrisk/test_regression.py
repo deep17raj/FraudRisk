@@ -24,7 +24,7 @@ from fraudrisk.sources.feeds import FeedRegistry
 from fraudrisk.sources.phish import DomainHeuristicSource, EmailHygieneSource, PhishFeedSource
 from fraudrisk.sources.ip_rep import TorExitSource
 from fraudrisk.sources.rules import BehaviourRuleSource
-from tests.conftest import echo_llm, make_settings, scripted_llm
+from tests.fraudrisk.conftest import echo_llm, make_settings, scripted_llm
 
 FIXTURES = json.loads((Path(__file__).parent / "fixtures" / "subjects.json").read_text("utf-8"))
 CASES = FIXTURES["cases"]

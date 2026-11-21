@@ -6,7 +6,10 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+COPY telegraphintent ./telegraphintent
 COPY fraudrisk ./fraudrisk
+COPY factcheck ./factcheck
+COPY audit ./audit
 COPY miner.yaml ./miner.yaml
 
 RUN useradd -m app && chown -R app /app
@@ -14,5 +17,5 @@ USER app
 
 EXPOSE 8000
 # $PORT is injected by Render/Railway/Fly; default 8000 locally.
-# One worker keeps the in-memory cache and the bulk feeds coherent.
-CMD ["sh", "-c", "uvicorn fraudrisk.app:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --timeout-keep-alive 30"]
+# One worker keeps each intent's in-memory cache (and the fraud bulk feeds) coherent.
+CMD ["sh", "-c", "uvicorn telegraphintent.app:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1 --timeout-keep-alive 30"]

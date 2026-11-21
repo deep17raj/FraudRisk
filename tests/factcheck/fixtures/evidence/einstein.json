@@ -1,0 +1,95 @@
+{
+ "claim": "Albert Einstein won the Nobel Prize in Physics in 1921.",
+ "recorded_at": "2026-11-16T19:29:48+00:00",
+ "source": "wikipedia (live API snapshot)",
+ "evidence": [
+  {
+   "url": "https://en.wikipedia.org/wiki/Nobel_Prize_in_Physics_controversies",
+   "title": "Nobel Prize in Physics controversies",
+   "snippet": "Since the first award in 1901, conferment of the Nobel Prizes, including the Nobel Prize in Physics, has engendered criticism and controversies. After his death in 1896, the will of Swedish industrialist Alfred Nobel established that an annual prize be awarded for service to humanity in the fields of physics, chemistry, physiology or medicine, literature, and peace. Similarly, the Sveriges Riksbank Prize in Economic Sciences in Memory of Alfred Nobel, first awarded in 1969, is awarded along with the Nobel Prizes. … Since the first award in 1901, conferment of the Nobel Prizes , including the Nobel Prize in Physics , has engendered criticism and controversies. After",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/List_of_Nobel_laureates_in_Physics",
+   "title": "List of Nobel laureates in Physics",
+   "snippet": "The Nobel Prize in Physics (Swedish: Nobelpriset i fysik) is awarded annually by the Royal Swedish Academy of Sciences to scientists in the various fields of physics. It is one of the five Nobel Prizes established by the 1895 will of Alfred Nobel (who died in 1896), awarded for outstanding contributions in physics. As dictated by Nobel's will, the award is administered by the Nobel Foundation and awarded by the Royal Swedish Academy of Sciences.",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Albert_Einstein",
+   "title": "Albert Einstein",
+   "snippet": "Albert Einstein (14 March 1879 – 18 April 1955) was a German-born theoretical physicist best known for developing the theory of relativity. He received the 1921 Nobel Prize in Physics for \"his services to theoretical physics, and especially for his discovery of the law of the photoelectric effect\". In 1917, Einstein wrote a paper which introduced the concepts of spontaneous emission and stimulated emission, the latter of which is the core mechanism behind the laser and maser, and which contained a trove of information that would be beneficial to developments in physics later on, such as quantu … \" The Nobel Prize in Physics 1921 \". Nobel Prize . Archived from the original on 3 July 2018. Retrieved 11 July 2016. Fölsing (1997). Albert Einstein . p",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Marie_Curie",
+   "title": "Marie Curie",
+   "snippet": "She shared the 1903 Nobel Prize in Physics with her husband, Pierre Curie, \"for their joint researches on the radioactivity phenomena discovered by Professor Henri Becquerel\". She won the 1911 Nobel Prize in Chemistry \"[for] the discovery of the elements radium and polonium, by the isolation of radium and the study of the nature and compounds of this remarkable element\". Curie was the first woman to win a Nobel Prize, the first person to win a Nobel Prize twice and the only person to win a Nobel Prize in two different scientific fields.",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/List_of_Jewish_Nobel_laureates",
+   "title": "List of Jewish Nobel laureates",
+   "snippet": "Of the 965 individual recipients of the Nobel Prize and the Nobel Memorial Prize in Economic Sciences between 1901 and 2025, at least 220 have been Jews or people with at least one Jewish parent, representing 22% of all recipients. Jews have been awarded all six of the Nobel Foundation's awards: Chemistry: 38 (19% of total) Economics: 40 (40% of total) Literature: 17 (14% of total) Peace: 9 (8% of total) Physics: 56 (24% of total) Physiology or Medicine: 61 (26% of total) Adolf von Baeyer, recipient of the 1905 Nobel Prize in Chemistry, was Jewish on his mother's side and is considered the fir … ISBN 978-0-8247-0876-4 \"The Nobel Prize in Physics 1921 \". Nobel Foundation. Retrieved 2008-10-09. \"The Nobel Prize in Physics 1922\". Nobel Foundation. Retrieved",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Nobel_Prize_in_Physics",
+   "title": "Nobel Prize in Physics",
+   "snippet": "The Nobel Prize in Physics is an annual award given by the Royal Swedish Academy of Sciences for those who have made the most outstanding contributions to humankind in the field of physics. Physics is traditionally the first award presented in the Nobel Prize ceremony. The first Nobel Prize in Physics was awarded to German physicist Wilhelm Röntgen in recognition of the extraordinary services he rendered by the discovery of X-rays.",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/List_of_Nobel_laureates_by_country",
+   "title": "List of Nobel laureates by country",
+   "snippet": "This is a list of Nobel Prize laureates by country. Listings for Economics refer to the related Nobel Memorial Prize in Economic Sciences. The Nobel Prizes and the Prize in Economic Sciences have been awarded 577 times to 889 recipients, of which 26 awards (all Peace Prizes) were to organizations. … listed here if the Nobel Prize committee relates them to a single country.[failed verification] Claude Cohen-Tannoudji*, Physics , 1997 Albert Camus*, Literature",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/List_of_awards_and_honors_received_by_Albert_Einstein",
+   "title": "List of awards and honors received by Albert Einstein",
+   "snippet": "In 1922 Albert Einstein was awarded the 1921 Nobel Prize in Physics, \"for his services to Theoretical Physics, and especially for his discovery of the law of the photoelectric effect\". This refers to his 1905 paper on the photoelectric effect, \"On a Heuristic Viewpoint Concerning the Production and Transformation of Light\", which was well supported by the experimental evidence by that time. The presentation speech began by mentioning \"his theory of relativity [which had] been the subject of lively debate in philosophical circles [and] also has astrophysical implications which are being rigorou … In 1922 Albert Einstein was awarded the 1921 Nobel Prize in Physics , \"for his services to Theoretical Physics , and especially for his discovery of the",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  }
+ ]
+}

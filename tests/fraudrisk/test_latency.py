@@ -15,8 +15,8 @@ import pytest
 from fraudrisk.models import RiskLevel
 from fraudrisk.pipeline import FraudRiskPipeline
 from fraudrisk.resilience import CircuitBreaker, CircuitOpen, call_with_retry
-from tests.conftest import FakeSource, make_settings, sig
-from tests.test_regression import CASES, build_pipeline
+from tests.fraudrisk.conftest import FakeSource, make_settings, sig
+from tests.fraudrisk.test_regression import CASES, build_pipeline
 
 SUBJECTS = [c["subject"] for c in CASES]
 

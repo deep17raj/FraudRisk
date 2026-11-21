@@ -1,0 +1,51 @@
+{
+ "claim": "Sharks are mammals.",
+ "recorded_at": "2026-11-16T19:30:00+00:00",
+ "source": "wikipedia (live API snapshot)",
+ "evidence": [
+  {
+   "url": "https://en.wikipedia.org/wiki/Shark_attack",
+   "title": "Shark attack",
+   "snippet": "A shark attack is an incident in which a shark bites or otherwise injures a human. Despite their rarity, many people fear shark attacks after occasional serial attacks, such as the Jersey Shore shark attacks of 1916, and horror fiction and films such as the Jaws series. Sharks usually feed on small fish and invertebrates, seals, sea lions, and other marine mammals. … Humans are not part of a shark's normal diet. Sharks usually feed on small fish and invertebrates, seals, sea lions, and other marine mammals . A shark attack",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Greenland_shark",
+   "title": "Greenland shark",
+   "snippet": "The Greenland shark (Somniosus microcephalus), also known as the grey shark or gurry shark, is a large shark of the family Somniosidae (\"sleeper sharks\"), closely related to the Pacific and southern sleeper sharks. Greenland sharks have the longest lifespan of any known vertebrate, estimated to be between 272 and 510 years. Greenland shark meat is made toxic to mammals by high levels of trimethylamine N-oxide, although a treated form of it is eaten in Iceland as the pungent delicacy kæstur hákarl. … Greenland shark (Somniosus microcephalus), also known as the grey shark or gurry shark , is a large shark of the family Somniosidae (\"sleeper sharks \"), closely",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Cookiecutter_shark",
+   "title": "Cookiecutter shark",
+   "snippet": "The cookiecutter shark (Isistius brasiliensis), also called the cigar shark, is a species of small squaliform shark in the family Dalatiidae. This shark lives in warm, oceanic waters worldwide, particularly near islands, and has been recorded as deep as 3.7 km (2.3 mi). Marks made by cookiecutter sharks have been found on a wide variety of marine mammals and fishes, and on submarines, undersea cables, and human bodies. … of larger animals. Marks made by cookiecutter sharks have been found on a wide variety of marine mammals and fishes, and on submarines, undersea cables",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Great_white_shark",
+   "title": "Great white shark",
+   "snippet": "The great white shark (Carcharodon carcharias), also known as the white shark, white pointer, or great white, is a large shark. It is closely related to the mako sharks, the porbeagle, and the salmon shark. The white shark preys on marine mammals such as seals and dolphins, as well as squid and fish, including other sharks. … The white shark is one of the largest living sharks and fish but is smaller than the whale shark and basking shark . Female white sharks are mature at",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  }
+ ]
+}

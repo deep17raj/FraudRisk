@@ -1,0 +1,51 @@
+{
+ "claim": "Vaccines cause autism.",
+ "recorded_at": "2026-11-16T19:29:56+00:00",
+ "source": "wikipedia (live API snapshot)",
+ "evidence": [
+  {
+   "url": "https://en.wikipedia.org/wiki/Vaccines_and_autism",
+   "title": "Vaccines and autism",
+   "snippet": "Extensive investigation into vaccines and autism spectrum disorder has shown that there is no relationship between the two, causal or otherwise, and that vaccine ingredients do not cause autism. Major health authorities, including the World Health Organization, the National Health Service, the Centers for Disease Control and Prevention and the United States Food and Drug Administration, along with large-scale epidemiological research, reinforce the scientific consensus that vaccines are safe, that multiple concurrent vaccinations do not overwhelm the immune system, and that autism cannot be at",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/MMR_vaccine_and_autism",
+   "title": "MMR vaccine and autism",
+   "snippet": "Claims of a link between the measles, mumps, and rubella (MMR) vaccine and autism have been extensively investigated and have been found to be false. The link was first suggested in the early 1990s and came to public notice largely as a result of the 1998 Lancet MMR autism fraud, characterised as \"perhaps the most damaging medical hoax of the last 100 years\". The fraudulent research paper, authored by Andrew Wakefield and published in The Lancet, falsely claimed the vaccine was linked to colitis and autism spectrum disorders. … measles–mumps–rubella vaccine does not cause autism or any particular subtypes of autistic spectrum disorder.\" A 2006 review of the literature regarding vaccines and autism",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Thiomersal_and_vaccines",
+   "title": "Thiomersal and vaccines",
+   "snippet": "Claims relating to the safety of thiomersal, a mercury-based preservative used in vaccines, are refuted, but still subject to fearmongering, notably claims it could cause neurological disorders such as autism, leading to its removal from most vaccines in the U.S. childhood schedule. Anti-vaccination activists promoting the incorrect claim that vaccination causes autism have asserted that the mercury in thiomersal is the cause. Multiple lines of scientific evidence have shown that thiomersal does not cause autism. … fearmongering, notably claims it could cause neurological disorders such as autism , leading to its removal from most vaccines in the U.S. childhood schedule.",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Causes_of_autism",
+   "title": "Causes of autism",
+   "snippet": "The causes of autism are a subject of scientific research, but understanding of the etiology of autism is incomplete. In rare cases, autism has been associated with agents that cause birth defects. Overwhelming scientific evidence shows no causal association between thiomersal and vaccines, including the measles-mumps-rubella (MMR) vaccine, and autism. … between thiomersal and vaccines , including the measles-mumps-rubella (MMR) vaccine , and autism . Parental concern about vaccines has led to a decreasing",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  }
+ ]
+}

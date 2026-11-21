@@ -14,7 +14,7 @@ from fraudrisk.models import Family, Strength
 from fraudrisk.patterns import Pattern
 from fraudrisk.reasoning import (SCHEMA, ReasoningService, template_summary, validate_summary)
 from fraudrisk.scoring import compute_score
-from tests.conftest import FakeLLM, echo_llm, sig
+from tests.fraudrisk.conftest import FakeLLM, echo_llm, sig
 
 SUBJECT = classify("New account, VPN login, first transfer of $4,200 to a new payee")
 

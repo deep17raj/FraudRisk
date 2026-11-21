@@ -1,0 +1,95 @@
+{
+ "claim": "Napoleon Bonaparte was unusually short for his time.",
+ "recorded_at": "2026-11-16T19:30:03+00:00",
+ "source": "wikipedia (live API snapshot)",
+ "evidence": [
+  {
+   "url": "https://en.wikipedia.org/wiki/Bonaparte_Before_the_Sphinx",
+   "title": "Bonaparte Before the Sphinx",
+   "snippet": "Bonaparte Before the Sphinx (French: Bonaparte devant le Sphinx) is an 1886 painting by the French artist Jean-Léon Gérôme. It depicts Napoleon Bonaparte during his Egyptian campaign, positioned on horseback in front of the Great Sphinx of Giza, with his army in the background. It popularized Napoleon in front of the Sphinx as a subject in art and caricature. … (Œdipe). It depicts Napoleon Bonaparte during his Egyptian campaign, positioned on horseback in front of the Great Sphinx of Giza, with his army in the background",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Symphony_No._3_(Beethoven)",
+   "title": "Symphony No. 3 (Beethoven)",
+   "snippet": "The Symphony No. 3 in E♭ major, Op. 55, titled as the Eroica Symphony, is a symphony in four movements by Ludwig van Beethoven. … Beethoven had been thinking of Bonaparte , but Bonaparte while he was First Consul. At that time Beethoven had the highest esteem for him and compared him to",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Cultural_depictions_of_Napoleon",
+   "title": "Cultural depictions of Napoleon",
+   "snippet": "Napoleon I, Emperor of the French, has become a worldwide cultural icon generally associated with tactical brilliance, ambition, and political power. A major figure in history of France and Europe, Napoleon is known for the scope of his military conquests as well as his ultimate defeats. Napoleon has been portrayed in many works of fiction, his depiction varying greatly with the author's perception of the historical character. … depicted as a short and \"petty tyrant\", sometimes comically so. Napoleon Bonaparte is the primary architect of his own legend. In his work \" Napoléon journaliste",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Victor_Hugo",
+   "title": "Victor Hugo",
+   "snippet": "Victor-Marie Hugo, vicomte Hugo (French: [viktɔʁ maʁi yɡo] ; 26 February 1802 – 22 May 1885) was a French Romantic author, poet, essayist, playwright, journalist, human rights activist and politician. His most famous works are the novels The Hunchback of Notre-Dame (1831) and Les Misérables (1862). His work touched upon most of the political and social issues and the artistic trends of his time. … music ever composed\". He also greatly admired Beethoven and, rather unusually for his time , appreciated works by composers from earlier centuries such as Palestrina",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Bourbon_Restoration_in_France",
+   "title": "Bourbon Restoration in France",
+   "snippet": "The Bourbon Restoration was the period of French history during which the House of Bourbon returned to power after the fall of Napoleon Bonaparte in 1814 and 1815. Exiled supporters of the monarchy returned to France, which had been profoundly changed by the French Revolution. Exhausted by the Napoleonic Wars, the kingdom experienced a period of internal and external peace, stable economic prosperity and the preliminaries of industrialisation.",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Napoleon",
+   "title": "Napoleon",
+   "snippet": "Napoleon Bonaparte (born Napoleone di Buonaparte; 15 August 1769 – 5 May 1821) was Emperor of the French from 18 May 1804 until his first abdication in 1814, with a brief restoration during the Hundred Days in 1815. Born on the island of Corsica to a family of Italian origin, Napoleon moved to mainland France in 1779 and was commissioned as an officer in the French Royal Army in 1785. In November 1799 Napoleon engineered the Coup of 18 Brumaire against the French Directory and became First Consul of the Republic.",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/House_of_Bonaparte",
+   "title": "House of Bonaparte",
+   "snippet": "The House of Bonaparte (originally Buonaparte) is a former European imperial and royal dynasty of Italian origin, that was recognized as noble in France under the Ancien Régime. Although the family traces its lineage to the 13th century, the imperial dynasty was established in 1804 by Napoleon I, who was the son of the French Corsican nobleman Carlo Buonaparte and noblewoman Letizia Ramolino. Between 1852 and 1870, there was a Second French Empire, when a member of the Bonaparte dynasty once again ruled France: Napoleon III, the youngest son of Louis Bonaparte. … Jérôme Napoléon Bonaparte , 1805–1870 Jerome Napoleon Bonaparte II, 1830–1893 Jerome Napoléon Charles Bonaparte III, 1878–1945 Charles Joseph Bonaparte , 1851–1921",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Joseph_Bonaparte",
+   "title": "Joseph Bonaparte",
+   "snippet": "Joseph Bonaparte (born Giuseppe di Buonaparte, Italian: [dʒuˈzɛppe di ˌbwɔnaˈparte]; Corsican: Ghjuseppe Bonaparte; Spanish: José Bonaparte; 7 January 1768 – 28 July 1844), regnal name José I, was a French statesman, lawyer, diplomat and older brother of Napoleon Bonaparte. In 1806, Napoleon made him King of Naples, and then King of Spain and the Indies in 1808. After the fall of Napoleon, Joseph styled himself Comte de Survilliers and emigrated to the United States, where he lived in the Point Breeze estate at Bordentown, New Jersey. … brother of Napoleon Bonaparte . In 1806, Napoleon made him King of Naples, and then King of Spain and the Indies in 1808. After the fall of Napoleon , Joseph",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  }
+ ]
+}

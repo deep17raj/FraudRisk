@@ -1,0 +1,62 @@
+{
+ "claim": "The mayor of Tiny Falls, Idaho approved a $41,200 bike lane budget in March 2021.",
+ "recorded_at": "2026-11-16T19:30:06+00:00",
+ "source": "wikipedia (live API snapshot)",
+ "evidence": [
+  {
+   "url": "https://en.wikipedia.org/wiki/Salt_Lake_City",
+   "title": "Salt Lake City",
+   "snippet": "Salt Lake City, often shortened to Salt Lake or SLC, is the capital and most populous city of the U.S. state of Utah. It is the county seat of Salt Lake County, the most populous county in the state. The population was 199,723 at the 2020 census, while the Salt Lake City metropolitan area has an estimated 1.3 million residents and is the 46th-largest metropolitan area in the United States. … \"Green Shared Lane \", or \"super sharrow\", a 4-foot-wide (1.2 m) green band down the middle of a travel lane where adding a dedicated bike lane is unfeasible",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Interstate_15_in_Idaho",
+   "title": "Interstate 15 in Idaho",
+   "snippet": "In Idaho, the Interstate Highway runs exactly 196 miles (315 km) from the Utah state line near Woodruff north to the Montana state line at Monida Pass. The Interstate Highway connects Pocatello and Idaho Falls, the fourth and fifth largest cities in Idaho, and the smaller county seats of Malad City, Blackfoot, and Dubois. The Interstate has business loops through McCammon, Inkom, Pocatello, Blackfoot, and Idaho Falls. … highway of Eastern Idaho . The Interstate Highway connects Pocatello and Idaho Falls , the fourth and fifth largest cities in Idaho , and the smaller county",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/SL-1",
+   "title": "SL-1",
+   "snippet": "Stationary Low-Power Reactor Number One, also known as SL-1, initially the Argonne Low Power Reactor (ALPR), was a United States Army experimental nuclear reactor at the National Reactor Testing Station (NRTS) in Idaho about forty miles (65 km) west of Idaho Falls, now the Idaho National Laboratory. The accident released about 1,100 curies (41 TBq) of fission products into the atmosphere, including the isotopes of xenon, isotopes of krypton, strontium-91, and yttrium-91 detected in the tiny town of Atomic City, Idaho. This was not considered significant, due to the reactor's location in the re … National Reactor Testing Station (NRTS) in Idaho about forty miles (65 km) west of Idaho Falls , now the Idaho National Laboratory. It operated from 1958",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Silverwood_Theme_Park",
+   "title": "Silverwood Theme Park",
+   "snippet": "Silverwood Theme Park is an amusement park located near the city of Athol in northern Idaho, United States, near the city of Coeur d'Alene, approximately 47 miles (76 km) from Spokane, Washington on US 95. The park opened on June 20, 1988. On March 27, 2026, the sale was completed and Herschend Family Entertainment became the new owner. … Silverwood Theme Park (Athol, Idaho, United States)\". \" Tiny Toot - Silverwood Theme Park (Athol, Idaho , United States)\". \"Watch This is How We Roll Online",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Coeur_d%27Alene_Mountains",
+   "title": "Coeur d'Alene Mountains",
+   "snippet": "The Coeur d'Alene Mountains are the northwesternmost portion of the Bitterroot Range, part of the Rocky Mountains, located in northern Idaho and westernmost Montana in the Western United States. Around 43,000 acres (17,000 ha) of roadless country centered on 5,980-foot (1,823 m) Mount Bushnell, south of Thompson Falls, provides good habitat for deer, elk, and mountain lion. Several tiny alpine lakes are hidden in cirque basins on Eddy Mountain. … the Bitterroot Range, part of the Rocky Mountains, located in northern Idaho and westernmost Montana in the Western United States. The mountain range",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  }
+ ]
+}

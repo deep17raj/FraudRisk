@@ -1,0 +1,84 @@
+{
+ "claim": "The Pacific Ocean is the largest ocean on Earth.",
+ "recorded_at": "2026-11-16T19:29:49+00:00",
+ "source": "wikipedia (live API snapshot)",
+ "evidence": [
+  {
+   "url": "https://en.wikipedia.org/wiki/Pacific_Ocean",
+   "title": "Pacific Ocean",
+   "snippet": "The Pacific Ocean is the largest and deepest of Earth's five oceanic divisions. At 165,250,000 square kilometers (63,800,000 square miles) in area (as defined with a southern Antarctic border), the Pacific Ocean is the largest division of the World Ocean and the hydrosphere and covers approximately 46% of Earth's water surface and about 32% of the planet's total surface area, larger than its entire land area combined (148,940,000 square kilometers or 57,510,000 square miles). The centers of both the water hemisphere and the Western Hemisphere, as well as the oceanic pole of inaccessibility, ar … The Pacific Ocean is the largest and deepest of Earth's five oceanic divisions. It stretches from the Arctic Ocean in the north to the Southern Ocean",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Borders_of_the_oceans",
+   "title": "Borders of the oceans",
+   "snippet": "The borders of the oceans are the limits of Earth's oceanic waters. The definition and number of oceans can vary depending on the adopted criteria. The principal divisions (in descending order of area) of the five oceans are the Pacific Ocean, Atlantic Ocean, Indian Ocean, Southern (Antarctic) Ocean, and Arctic Ocean.",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/List_of_islands_in_the_Pacific_Ocean",
+   "title": "List of islands in the Pacific Ocean",
+   "snippet": "The islands in the Pacific Ocean are categorized into three major island groups: Melanesia, Micronesia, and Polynesia. Depending on the context, the term Pacific Islands may refer to one of several concepts: (1) those Pacific islands whose people have Austronesian origins, (2) the Pacific islands once or currently colonized after 1500 CE, (3) the geographical region of Oceania, or (4) any island located in the Pacific Ocean. This list of islands in the Pacific Ocean is organized by archipelago or political boundary.",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Ocean",
+   "title": "Ocean",
+   "snippet": "The ocean is the body of salt water that covers approximately 70.8% of Earth. The ocean is conventionally divided into large bodies of water, which are also referred to as oceans (in descending order by area: the Pacific Ocean, the Atlantic Ocean, the Indian Ocean, the Antarctic/Southern Ocean, and the Arctic Ocean), and are themselves mostly divided into seas, gulfs, and subsequent bodies of water. The ocean contains 97% of Earth's water and is the primary component of Earth's hydrosphere, acting as a huge reservoir of heat for Earth's energy budget, as well as for its carbon cycle and water  … The ocean is the body of salt water that covers approximately 70.8% of Earth . The ocean is conventionally divided into large bodies of water, which are",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Spacecraft_cemetery",
+   "title": "Spacecraft cemetery",
+   "snippet": "The spacecraft cemetery, also known as spacecraft graveyard or spacecraft junkyard, known more formally as the South Pacific Ocean(ic) Uninhabited Area—is a region near, but beyond the southern edge of Polynesia, more specifically the South Pacific Ocean east of New Zealand—where spacecraft that have reached the end of their usefulness are routinely crashed. Current considerations of the spacecraft cemetery include the environmental impact it creates on marine life within the South Pacific Ocean Uninhabited Region. Other forms of space debris removal are being considered and produced to slow t … South Pacific Ocean (ic) Uninhabited Area—is a region near, but beyond the southern edge of Polynesia, more specifically the South Pacific Ocean east of",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/North_Pacific_(disambiguation)",
+   "title": "North Pacific (disambiguation)",
+   "snippet": "The North Pacific is the Northern Hemisphere portion of the Pacific Ocean, Earth's largest oceanic division. It may also refer to: … North Pacific in Wiktionary, the free dictionary. The North Pacific is the Northern Hemisphere portion of the Pacific Ocean , Earth's largest oceanic division",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Panthalassa",
+   "title": "Panthalassa",
+   "snippet": "In historical geology, Panthalassa, also known as the Panthalassic Ocean or Panthalassan Ocean (from Ancient Greek πᾶν (pan) 'all' and θάλασσα (thalassa) 'sea'), was the vast superocean that encompassed planet Earth and surrounded the supercontinent Pangaea, the latest in a series of supercontinents in the history of Earth. 250 Ma), the ocean occupied almost 70% of Earth's surface, with the supercontinent Pangaea taking up the remainder. Panthalassa is also referred to as the Paleo-Pacific (\"old Pacific\") or Proto-Pacific because the Pacific Ocean is a direct continuation of it. … 250 Ma), the ocean occupied almost 70% of Earth's surface, with the supercontinent Pangaea taking up the remainder. The original, ancient ocean floor has",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  }
+ ]
+}

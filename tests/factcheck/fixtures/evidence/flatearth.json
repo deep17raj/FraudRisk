@@ -1,0 +1,95 @@
+{
+ "claim": "The Earth is flat.",
+ "recorded_at": "2026-11-16T19:29:59+00:00",
+ "source": "wikipedia (live API snapshot)",
+ "evidence": [
+  {
+   "url": "https://en.wikipedia.org/wiki/Flat_Earth",
+   "title": "Flat Earth",
+   "snippet": "Flat Earth is an archaic and scientifically disproven conception of Earth's shape as a plane or disk. Many ancient societies subscribed to a flat-Earth cosmography. However, the early Greek cosmological view of a flat Earth persisted among most pre-Socratics (6th–5th century BC). … Flat Earth is an archaic and scientifically disproven conception of Earth's shape as a plane or disk. Many ancient societies subscribed to a flat -Earth",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Modern_flat_Earth_beliefs",
+   "title": "Modern flat Earth beliefs",
+   "snippet": "Anti-scientific beliefs in a flat Earth are promoted by a number of organizations and individuals. The claims of modern flat Earth proponents are not based on scientific knowledge and are contrary to over two millennia of scientific consensus based on multiple confirming lines of evidence that Earth is roughly spherical. Flat Earth beliefs are classified by experts in philosophy and physics as a form of science denial.",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Myth_of_the_flat_Earth",
+   "title": "Myth of the flat Earth",
+   "snippet": "The myth of the flat Earth, or the flat-Earth error, is a modern historical misconception that European scholars and educated people during the Middle Ages believed the Earth to be flat. According to Stephen Jay Gould, \"there never was a period of 'flat Earth darkness' among scholars, regardless of how the public at large may have conceptualized our planet both then and now. Historian Jeffrey Burton Russell says the flat-Earth error flourished most between 1870 and 1920, and had to do with the ideological setting created by struggles over biological evolution. … The myth of the flat Earth , or the flat - Earth error, is a modern historical misconception that European scholars and educated people during the Middle",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Flat_Earth_(disambiguation)",
+   "title": "Flat Earth (disambiguation)",
+   "snippet": "The flat Earth is the idea that the Earth is flat. Flat Earth may also refer to: … The flat Earth is the idea that the Earth is flat . Flat Earth may also refer to: Modern flat Earth beliefs, beliefs and organizations that claim the Earth",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Mark_Sargent_(flat_Earth_proponent)",
+   "title": "Mark Sargent (flat Earth proponent)",
+   "snippet": "Mark Kendall Sargent (born c. 1968) is an American conspiracy theorist, who is one of the leading proponents of, and recruiters for, the discredited flat Earth conspiracy theory in the United States. According to critics, his YouTube videos have greatly accelerated the popularization of modern flat Earth belief, one without scientific merit.",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Earth",
+   "title": "Earth",
+   "snippet": "Earth is the third planet from the Sun and the only astronomical object known to harbor life. This is made possible by Earth being an ocean world, the only one in the Solar System sustaining liquid surface water. Almost all of Earth's water is contained in its ocean, which covers 70.8% of Earth's crust.",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/In_the_Earth",
+   "title": "In the Earth",
+   "snippet": "In the Earth (stylized as IN THE EⱯRTH) is a 2021 science fiction psychological horror film written and directed by Ben Wheatley. The film stars Joel Fry, Reece Shearsmith, Hayley Squires, Ellora Torchia, John Hollingworth, and Mark Monero. In the Earth had its world premiere at the 2021 Sundance Film Festival on 29 January 2021, and was released in North America on 16 April 2021, by Neon. … In the Earth (stylized as IN THE EⱯRTH ) is a 2021 science fiction psychological horror film written and directed by Ben Wheatley. The film stars Joel Fry",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Moon",
+   "title": "Moon",
+   "snippet": "The Moon is the only natural satellite of Earth. It orbits Earth in an elliptical path, at a distance that varies over the year, averaging around 378,000 kilometers (235,000 mi). It completes an orbit (lunar month) in relation to Earth and the Sun (synodically) every 29.5 days. … The Moon is the only natural satellite of Earth . It orbits Earth in an elliptical path, at a distance that varies over the year, averaging around 378,000",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  }
+ ]
+}

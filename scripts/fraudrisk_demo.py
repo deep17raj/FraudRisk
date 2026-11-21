@@ -4,10 +4,10 @@ Doubles as hackathon submission evidence: it shows the grade, the score, the fus
 families, the named fraud pattern and the latency for every fixture, plus the structured log
 line behind each one if you ask for it.
 
-    python scripts/demo.py                      # in-process, live signal sources
-    python scripts/demo.py --url https://host   # against a deployed endpoint
-    python scripts/demo.py --json > evidence.jsonl
-    python scripts/demo.py --subject "new account, VPN login, $4k to a new payee"
+    python scripts/fraudrisk_demo.py                      # in-process, live signal sources
+    python scripts/fraudrisk_demo.py --url https://host   # against a deployed endpoint
+    python scripts/fraudrisk_demo.py --json > evidence.jsonl
+    python scripts/fraudrisk_demo.py --subject "new account, VPN login, $4k to a new payee"
 """
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from fraudrisk.config import Settings
 from fraudrisk.pipeline import FraudRiskPipeline
 
-FIXTURES = Path(__file__).resolve().parent.parent / "tests" / "fixtures" / "subjects.json"
+FIXTURES = Path(__file__).resolve().parent.parent / "tests" / "fraudrisk" / "fixtures" / "subjects.json"
 
 
 def load_subjects() -> list[str]:

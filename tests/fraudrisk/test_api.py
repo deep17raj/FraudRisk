@@ -16,8 +16,8 @@ from fastapi.testclient import TestClient
 from fraudrisk.app import create_app
 from fraudrisk.models import Assessment, RiskLevel
 from fraudrisk.scoring import level_for_score
-from tests.conftest import make_settings
-from tests.test_regression import build_pipeline, stub_feeds
+from tests.fraudrisk.conftest import make_settings
+from tests.fraudrisk.test_regression import build_pipeline, stub_feeds
 
 EXPECTED_FIELDS = {"risk_level", "risk_score", "signals", "summary"}
 LEVELS = {"LOW", "MEDIUM", "HIGH", "CRITICAL"}

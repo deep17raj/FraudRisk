@@ -1,0 +1,51 @@
+{
+ "claim": "The Eiffel Tower is located in Paris.",
+ "recorded_at": "2026-11-16T19:29:46+00:00",
+ "source": "wikipedia (live API snapshot)",
+ "evidence": [
+  {
+   "url": "https://en.wikipedia.org/wiki/Eiffel_Tower",
+   "title": "Eiffel Tower",
+   "snippet": "The Eiffel Tower ( EYE-fəl; French: Tour Eiffel [tuʁ ɛfɛl] ) is a lattice tower on the Champ de Mars in Paris, France. It is named after the engineer Gustave Eiffel, whose company designed and built the tower from 1887 to 1889. The Eiffel Tower is the most visited monument with an entrance fee in the world: 6.91 million people ascended it in 2015. … The Eiffel Tower (/ˈaɪfəl/ EYE-fəl; French: Tour Eiffel [tuʁ ɛfɛl] ) is a lattice tower on the Champ de Mars in Paris , France. It is named after the engineer",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Eiffel_Tower_(Paris,_Texas)",
+   "title": "Eiffel Tower (Paris, Texas)",
+   "snippet": "Texas's Eiffel Tower is a landmark in the city of Paris, Texas. The tower was constructed in 1993. It is a rough scale model of the Eiffel Tower in Paris, France; at 65 ft (20 m) in height, it is roughly one-sixteenth of the height of the original. … Texas's Eiffel Tower is a landmark in the city of Paris , Texas. The tower was constructed in 1993. It is a rough scale model of the Eiffel Tower in Paris , France;",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Eiffel_Tower_replicas_and_derivatives",
+   "title": "Eiffel Tower replicas and derivatives",
+   "snippet": "As one of the most iconic and recognizable structures in the world, the Eiffel Tower, completed in 1889, has been the inspiration for the creation of over 50 similar towers around the world. Most are not exact replicas, though there are many that resemble it closely, while others look slightly different. The Eiffel Tower has also inspired other towers that are not close resembling replicas and therefore are not listed here, for example the Blackpool Tower. … As one of the most iconic and recognizable structures in the world, the Eiffel Tower , completed in 1889, has been the inspiration for the creation of",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Eiffel_Tower_(Paris,_Tennessee)",
+   "title": "Eiffel Tower (Paris, Tennessee)",
+   "snippet": "The Eiffel Tower is a landmark in the city of Paris, Tennessee. At 60 feet (18 m) tall, it is a 1:20 scale replica of the original located in Paris, France. … The Eiffel Tower is a landmark in the city of Paris , Tennessee. At 60 feet (18 m) tall, it is a 1:20 scale replica of the original located in Paris , France",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  }
+ ]
+}

@@ -11,7 +11,7 @@ import pytest
 from fraudrisk.models import Family, RiskLevel, Strength
 from fraudrisk.scoring import (DEFAULT_THRESHOLDS, SCORE_DECIMALS, Thresholds, compute_score,
                                family_weights, level_for_score)
-from tests.conftest import sig
+from tests.fraudrisk.conftest import sig
 
 T = DEFAULT_THRESHOLDS
 

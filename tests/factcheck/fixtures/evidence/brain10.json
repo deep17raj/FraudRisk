@@ -1,0 +1,84 @@
+{
+ "claim": "Humans only use 10% of their brains.",
+ "recorded_at": "2026-11-16T19:29:55+00:00",
+ "source": "wikipedia (live API snapshot)",
+ "evidence": [
+  {
+   "url": "https://en.wikipedia.org/wiki/Boltzmann_brain",
+   "title": "Boltzmann brain",
+   "snippet": "Physicists use the Boltzmann brain thought experiment as a reductio ad absurdum argument for evaluating competing scientific theories. Over a sufficiently long time, random fluctuations could cause particles to spontaneously form literally any structure of any degree of complexity, including a functioning human brain. The Boltzmann brain gained new relevance around 2002, when some cosmologists started to become concerned that, in many theories about the universe, human brains are vastly more likely to arise from random fluctuations; this leads to the conclusion that, statistically, humans are  … universe, human brains are vastly more likely to arise from random fluctuations; this leads to the conclusion that, statistically, humans are likely",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Flight_of_the_Navigator",
+   "title": "Flight of the Navigator",
+   "snippet": "Flight of the Navigator is a 1986 American science-fiction adventure film directed by Randal Kleiser and written by Mark H. The film is notable for being one of the first Hollywood films to use extensive computer-generated imagery (CGI) effects. Specifically, it was the first use of image-based lighting and an early use of morphing in a motion picture. … them to their homes. Phaelon's scientists discovered that humans only use 10 % of their brains , and as an experiment, filled the remainder of David's brain",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Ten-percent-of-the-brain_myth",
+   "title": "Ten-percent-of-the-brain myth",
+   "snippet": "The ten-percent-of-the-brain myth states that humans generally use only one-tenth (or some other small fraction) of their brains. The popular notion that large parts of the brain remain unused, and could subsequently be \"activated\", rests in folklore and not science. Though specific mechanisms regarding brain function remain to be fully described—e.g. memory, consciousness—the physiology of brain mapping suggests that all areas of the brain have a function and that they are used nearly all the time. … The ten-percent- of -the-brain myth states that humans generally use only one-tenth (or some other small fraction) of their brains . It has been misattributed",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Human",
+   "title": "Human",
+   "snippet": "Humans (Homo sapiens, meaning 'thinking man' or 'wise man', and collectively referred to as 'mankind' or 'humanity') are the most abundant and widespread species of primates, characterized by bipedalism, minimal body hair, and large, complex brains enabling the development of advanced technology, culture, and language. Humans are highly social beings and tend to live in complex social structures composed of many cooperating and competing groups, from families and kinship networks to political states. Humans have a large and highly developed prefrontal cortex, the region of the brain associated … humans have an unusually high degree of flexibility in their facial expressions. Humans are the only animals known to cry emotional tears. Humans are",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Brain_as_food",
+   "title": "Brain as food",
+   "snippet": "The brain, like most other internal organs, or offal, can serve as nourishment. Brains used for nourishment include those of pigs, squirrels, rabbits, horses, cattle, monkeys, chickens, camels, fish, lamb, and goats. In many cultures, different types of brain are considered a delicacy.",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Sexual_dimorphism_in_human_physiology",
+   "title": "Sexual dimorphism in human physiology",
+   "snippet": "Sexual dimorphism in human physiology refers to the distinct physiological characteristics associated with either male or female humans. These differences are caused by the effects of the different sex chromosome complement in males and females, and differential exposure to gonadal sex hormones during development. Physiological sex differences include discrete features such as the respective male and female reproductive systems, as well as average differences between males and females including size and strength, bodily proportions, hair distribution, breast differentiation, voice pitch, and b … Sexual dimorphism in human physiology refers to the distinct physiological characteristics associated with either male or female humans . These differences",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Human_brain",
+   "title": "Human brain",
+   "snippet": "The human brain is the central organ of the nervous system, and with the spinal cord, comprises the central nervous system. The brain controls most of the activities of the body, processing, integrating, and coordinating the information it receives from the sensory nervous system. The cerebrum, the largest part of the human brain, consists of two cerebral hemispheres.",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  }
+ ]
+}

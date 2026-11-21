@@ -1,0 +1,51 @@
+{
+ "claim": "Daily low-dose aspirin prevents heart attacks in healthy adults.",
+ "recorded_at": "2026-11-16T19:30:05+00:00",
+ "source": "wikipedia (live API snapshot)",
+ "evidence": [
+  {
+   "url": "https://en.wikipedia.org/wiki/Aspirin",
+   "title": "Aspirin",
+   "snippet": "Aspirin () is the genericized trademark for acetylsalicylic acid (ASA), a nonsteroidal anti-inflammatory drug (NSAID) used to reduce pain, fever, and inflammation, and as an antithrombotic. Aspirin is used to treat inflammatory conditions including Kawasaki disease, pericarditis, and rheumatic fever. Aspirin is also used long term to reduce the chance of heart attack, ischaemic stroke, and blood clots occurring in people considered to be at high risk for such events. … studies on the use of low - dose aspirin to prevent heart attacks that were published in the 1970s and 1980s helped spur reform in clinical research ethics",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Amlodipine",
+   "title": "Amlodipine",
+   "snippet": "Amlodipine, sold under the brand name Norvasc among others, is a calcium channel blocker medication used to treat high blood pressure, coronary artery disease (CAD) and variant angina (also called Prinzmetal angina or coronary artery vasospasm, among other names). Serious side effects may include low blood pressure or heart attack. When used by people with liver problems, and in elderly individuals, doses should be reduced. … low blood pressure or heart attack . Whether use is safe during pregnancy or breastfeeding is unclear. When used by people with liver problems, and in",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Myocardial_infarction",
+   "title": "Myocardial infarction",
+   "snippet": "A myocardial infarction (MI), commonly known as a heart attack, occurs when blood flow decreases or stops in one of the arteries of the heart, causing infarction (tissue death) to the heart muscle. An MI may cause heart failure, an irregular heartbeat, cardiogenic shock or cardiac arrest. MIs are less commonly caused by coronary artery spasms, which may be due to cocaine, significant emotional stress (often known as Takotsubo syndrome or broken heart syndrome) and extreme cold, among others. … as a heart attack , occurs when blood flow decreases or stops in one of the arteries of the heart , causing infarction (tissue death) to the heart muscle",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Atomoxetine",
+   "title": "Atomoxetine",
+   "snippet": "Atomoxetine, sold under the brand name Strattera, is a selective norepinephrine reuptake inhibitor medication used to treat attention deficit hyperactivity disorder (ADHD) and, to a lesser extent, cognitive disengagement syndrome (CDS). It may be used alone or along with psychostimulant medication. Serious side effects may include angioedema, liver problems, stroke, psychosis, heart problems, suicide, and aggression. … year or longer. The maximum recommended total daily dose in children and adolescents is 70 mg and adults is 100 mg. Atomoxetine may be used to treat cognitive",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  }
+ ]
+}

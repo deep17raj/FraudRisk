@@ -1,0 +1,95 @@
+{
+ "claim": "The Great Wall of China is visible from space with the naked eye.",
+ "recorded_at": "2026-11-16T19:29:58+00:00",
+ "source": "wikipedia (live API snapshot)",
+ "evidence": [
+  {
+   "url": "https://en.wikipedia.org/wiki/Artificial_structures_visible_from_space",
+   "title": "Artificial structures visible from space",
+   "snippet": "Artificial structures visible from space without magnification include highways, dams, and cities. Whether an object is visible depends significantly on the height above sea level from where it is observed. The Kármán line, at 100 kilometres (62 mi), is accepted by the World Air Sports Federation, an international standard-setting and record-keeping body for aeronautics and astronautics, as the boundary between the Earth's atmosphere and outer space. … Archived from the original on March 4, 2016. Retrieved 6 March 2016. Hvistendahl, Mara (February 21, 2008). \" Is China's Great Wall Visible from Space ?\". Scientific",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Great_Wall_of_China",
+   "title": "Great Wall of China",
+   "snippet": "The Great Wall of China is a series of fortifications in China. To aid in defense, the Great Wall utilized watchtowers, troop barracks, garrison stations, signaling capabilities through the means of smoke or fire, and its status as a transportation corridor. Other purposes of the Great Wall have included border controls (allowing control of immigration and emigration, and the imposition of duties on goods transported along the Silk Road), and the regulation of trade. … The Great Wall of China is a series of fortifications in China . They were built across the historical northern borders of ancient Chinese states and Imperial",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Factoid",
+   "title": "Factoid",
+   "snippet": "A factoid was originally defined to mean a false statement presented as a fact. In colloquial speech, it is often used to mean a true but brief or trivial item of news or information (which can be less ambiguously described as a \"factlet\"). The term was coined in 1973 by American writer Norman Mailer to mean a piece of information that becomes accepted as a fact even though it is not actually true, or an invented fact believed to be true because it appears in print.",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Andromeda_(constellation)",
+   "title": "Andromeda (constellation)",
+   "snippet": "Because of its northern declination, Andromeda is visible only north of 40° south latitude; for observers farther south, it always lies below the horizon. With a variable brightness similar to Alpheratz, Mirach (Beta Andromedae) is a red giant, its color visible to the naked eye. The constellation's most obvious deep-sky object is the naked-eye Andromeda Galaxy (M31, also called the Great Galaxy of Andromeda), the closest spiral galaxy to the Milky Way and one of the brightest Messier objects. … (Beta Andromedae) is a red giant, its color visible to the naked eye . The constellation's most obvious deep-sky object is the naked - eye Andromeda Galaxy",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Crux",
+   "title": "Crux",
+   "snippet": "Crux ( KRUKS) is a constellation of the southern sky that is centred on four bright stars in a cross-shaped asterism commonly known as the Southern Cross. It lies on the southern end of the Milky Way's visible band. Crux contains four Cepheid variables, each visible to the naked eye under optimum conditions.",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/History_of_the_Great_Wall_of_China",
+   "title": "History of the Great Wall of China",
+   "snippet": "The history of the Great Wall of China began when fortifications built by various states during the Spring and Autumn (771–476 BC) and Warring States periods (475–221 BC) were connected by the first emperor of China, Qin Shi Huang, to protect his newly founded Qin dynasty (221–206 BC) against incursions by nomads from Inner Asia. Although a useful deterrent against raids, at several points throughout its history the Great Wall failed to stop enemies, including in 1644 when the Qing troops marched through the gates of the Shanhai Pass and replaced the most ardent of the wall-building dynasties,",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/The_Great_Wall_(2016_film)",
+   "title": "The Great Wall (2016 film)",
+   "snippet": "The Great Wall (simplified Chinese: 长城; traditional Chinese: 長城) is a 2016 monster film directed by Zhang Yimou, with a screenplay by Carlo Bernard, Doug Miro and Tony Gilroy, from a story by Max Brooks, Edward Zwick and Marshall Herskovitz. An American and Chinese co-production starring Matt Damon, Jing Tian, Pedro Pascal, Willem Dafoe, and Andy Lau, the plot centers on two European mercenary warriors (Damon and Pascal) imprisoned by imperial Chinese forces within the Great Wall of China after arriving in search of gunpowder, eventually joining forces with the Chinese to help combat an alien  … The Great Wall (simplified Chinese : 长城; traditional Chinese : 長城) is a 2016 monster film directed by Zhang Yimou, with a screenplay by Carlo Bernard, Doug",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Underground_Great_Wall_of_China",
+   "title": "Underground Great Wall of China",
+   "snippet": "The Underground Great Wall of China (Chinese: 地下长城; pinyin: Dìxià Chángchéng) is the informal name for the 3,000 mile (5,000 km) system of tunnels used by China to store and transport intercontinental ballistic missiles (ICBMs). … The Underground Great Wall of China ( Chinese : 地下长城; pinyin: Dìxià Chángchéng) is the informal name for the 3,000 mile (5,000 km) system of tunnels used",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  }
+ ]
+}

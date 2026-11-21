@@ -1,0 +1,62 @@
+{
+ "claim": "Mars is the fourth planet from the Sun.",
+ "recorded_at": "2026-11-16T19:29:50+00:00",
+ "source": "wikipedia (live API snapshot)",
+ "evidence": [
+  {
+   "url": "https://en.wikipedia.org/wiki/Mars",
+   "title": "Mars",
+   "snippet": "Mars is the fourth planet from the Sun. Mars is a desert-like rocky planet with a tenuous atmosphere that is primarily carbon dioxide (CO2). Mars formed along with the other planets approximately 4.5 billion years ago. … Mars is the fourth planet from the Sun . It is also known as the \"Red Planet \", for its orange-red appearance. Mars is a desert-like rocky planet with a",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Mars_(disambiguation)",
+   "title": "Mars (disambiguation)",
+   "snippet": "Mars is the fourth planet from the Sun. Mars also commonly refers to: Mars (mythology), the Ancient Roman god of war, equivalent to the Greek god Ares Mars Inc., a confectioner and food company Mars bar, a chocolate treat produced by Mars, Inc. Mars may also refer to: … Mars , mars , or marš in Wiktionary, the free dictionary. Mars is the fourth planet from the Sun . Mars also commonly refers to: Mars (mythology), the Ancient",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Planets_in_astrology",
+   "title": "Planets in astrology",
+   "snippet": "In astrology, planets have a meaning different from the astronomical understanding of what a planet is. To the Ancient Greeks who learned from the Babylonians, the earliest astronomers/astrologers, this group consisted of the five planets visible to the naked eye and excluded Earth, plus the Sun and Moon. Although the Greek term planet applied mostly to the five 'wandering stars', the ancients included the Sun and Moon as the Sacred 7 Luminaires/7 Heavens (sometimes referred to as \"Lights\",) making a total of 7 planets. … around the Sun . Following that is the Sun , then Mars , Jupiter and Saturn. The astrological descriptions attached to the seven classical planets have been",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Transit_of_Deimos_from_Mars",
+   "title": "Transit of Deimos from Mars",
+   "snippet": "A transit of Deimos across the Sun as seen from Mars occurs when Deimos passes directly between the Sun and a point on the surface of Mars, obscuring a small part of the Sun's disc for an observer on Mars. During a transit, Deimos can be seen from Mars as a small dark spot rapidly moving across the Sun's face. However, since the angular diameter of Deimos is only about 1/10 of the angular diameter of the Sun as seen from Mars, it is more natural to refer to it as a transit. … the Sun as seen from Mars occurs when Deimos passes directly between the Sun and a point on the surface of Mars , obscuring a small part of the Sun's disc",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Solar_System",
+   "title": "Solar System",
+   "snippet": "The Solar System is the gravitationally bound system of the Sun and the masses that orbit it, most prominently its eight planets, of which Earth is one. Closest to the Sun in order of increasing distance are the terrestrial planets – Mercury, Venus, Earth and Mars. Earth and Mars are the only planets that orbit within the Sun's habitable zone, in which sunlight can keep surface water liquid under atmospheric pressure. … Venus, Earth and Mars . These four planets are part of the inner Solar System. Earth and Mars are the only planets that orbit within the Sun's habitable zone",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  }
+ ]
+}

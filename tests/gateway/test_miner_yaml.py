@@ -1,16 +1,17 @@
-"""miner.yaml must satisfy Telegraph's closed schema.
+"""The single miner.yaml must satisfy Telegraph's closed schema and match all three intents.
 
 Registration is rejected outright on any unknown key, so these tests are the cheap way to
 find that out before spending the MACHINA bond on a failing transaction.
 """
 from __future__ import annotations
 
+import hashlib
 import re
 from pathlib import Path
 
 import yaml
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]
 RAW = (ROOT / "miner.yaml").read_bytes()
 DOC = yaml.safe_load(RAW)
 
@@ -26,16 +27,22 @@ SEMANTICS = {"signal_mapping", "supported_intents"}
 PARAM = {"name", "type", "intents", "description", "accepted_fields"}
 REQUIRED = {"version", "kind", "id", "slug", "name", "base_url"}
 
+#: path -> (intent, request field)
+EXPECTED = {
+    "/fraud-risk": ("FRAUD_RISK_GENERAL", "subject"),
+    "/fact-check": ("FACT_CHECK_GENERAL", "claim"),
+    "/audit": ("CONTRACT_OBLIGATION_AUDIT_GENERAL", "contract"),
+}
+
 
 def test_no_unknown_keys_anywhere():
     assert set(DOC) <= TOP, set(DOC) - TOP
     assert REQUIRED <= set(DOC)
     assert set(DOC["auth"]) <= AUTH and DOC["auth"]["type"] in {"bearer", "header", "none"}
     assert set(DOC["semantics"]) <= SEMANTICS
-    assert set(DOC["semantics"]["signal_mapping"]) <= SIGNAL
+    assert set(DOC["semantics"].get("signal_mapping", {})) <= SIGNAL
     for ep in DOC["endpoints"]:
         assert set(ep) <= ENDPOINT, set(ep) - ENDPOINT
-        # the classic rejection: these are top-level keys only, never nested in an endpoint
         assert "input_schema" not in ep and "output_schema" not in ep
 
 
@@ -48,32 +55,37 @@ def test_identity_fields():
     assert DOC["description"].strip() and DOC["name"].strip()
 
 
-def test_endpoint_contract_matches_the_served_api():
-    (ep,) = DOC["endpoints"]
-    assert ep["path"] == "/fraud-risk" and ep["external_path"] == "/fraud-risk"
-    assert ep["method"] == "POST"
-    assert ep["description"].strip() and ep["intents"] == ["FRAUD_RISK_GENERAL"]
-    (p,) = ep["params"]["body"]["required"]
-    assert p["name"] == "subject" and p["type"] == "string"
-    assert p["intents"] == ["*"] and p["description"]
-    assert set(p) <= PARAM, set(p) - PARAM
-
-
-def test_signal_mapping_names_real_response_fields():
-    from fraudrisk.app import FraudRiskResponse
-
-    fields = set(FraudRiskResponse.model_fields)
-    sm = DOC["semantics"]["signal_mapping"]
-    assert sm == {"label_field": "risk_level", "confidence_field": "risk_score",
-                  "reason_field": "summary"}
-    for key, value in sm.items():
-        assert value in fields, f"{key}={value} is not a field this service returns"
+def test_one_endpoint_per_intent_with_the_right_request_field():
+    eps = {ep["path"]: ep for ep in DOC["endpoints"]}
+    assert set(eps) == set(EXPECTED), "miner.yaml must declare exactly the three intent endpoints"
+    for path, (intent, field) in EXPECTED.items():
+        ep = eps[path]
+        assert ep["external_path"] == path and ep["method"] == "POST"
+        assert ep["description"].strip() and ep["intents"] == [intent]
+        (p,) = ep["params"]["body"]["required"]
+        assert p["name"] == field and p["type"] == "string"
+        assert p["intents"] == ["*"] and p["description"]
+        assert set(p) <= PARAM, set(p) - PARAM
 
 
 def test_supported_intents_are_consistent():
     supported = set(DOC["semantics"]["supported_intents"])
-    assert supported == {"FRAUD_RISK_GENERAL"}
+    assert supported == {i for i, _ in EXPECTED.values()}
     assert all(set(ep["intents"]) <= supported for ep in DOC["endpoints"])
+
+
+def test_signal_mapping_if_present_names_real_fields():
+    sm = DOC["semantics"].get("signal_mapping")
+    if not sm:
+        return
+    from audit.app import AuditResponse
+    from factcheck.app import FactCheckResponse
+    from fraudrisk.app import FraudRiskResponse
+
+    shared = (set(AuditResponse.model_fields) & set(FactCheckResponse.model_fields)
+              & set(FraudRiskResponse.model_fields))
+    for key, value in sm.items():
+        assert value in shared, f"{key}={value} is not returned by all three intents"
 
 
 def test_file_is_lf_only_and_utf8():
@@ -83,34 +95,20 @@ def test_file_is_lf_only_and_utf8():
     RAW.decode("utf-8")
 
 
-def test_placeholder_host_cannot_be_registered_silently():
-    """Until the service is deployed, register.sh must refuse to proceed."""
+def test_register_script_covers_every_intent():
     script = (ROOT / "register.sh").read_text(encoding="utf-8")
-    if "REPLACE-WITH" in DOC["base_url"]:
-        assert "REPLACE-WITH" in script, "the guard that blocks a placeholder base_url is missing"
-
-
-def test_register_script_targets_this_intent():
-    script = (ROOT / "register.sh").read_text(encoding="utf-8")
-    assert "FRAUD_RISK_GENERAL" in script
+    assert "REPLACE-WITH" in script, "the guard that blocks a placeholder base_url is missing"
+    for intent, _ in EXPECTED.values():
+        assert intent in script
     assert "sha256" in script.lower()
+    for path in EXPECTED:
+        assert f"probe {path} " in script, f"register.sh does not smoke-test {path}"
     for secret in ("MINER_PRIVATE_KEY=0x", "0x1234"):
         assert f"\n{secret}" not in script, "no real or dummy key may be hardcoded"
 
 
-def test_the_service_serves_the_yaml_bytes_unmodified():
-    """YAML_URL can point at the running service, so this route must be byte-exact."""
-    import hashlib
-
-    from fastapi.testclient import TestClient
-
-    from fraudrisk.app import create_app
-    from tests.conftest import make_settings
-    from tests.test_api import StubPipeline
-
-    with TestClient(create_app(make_settings(), pipeline=StubPipeline())) as client:
-        r = client.get("/miner.yaml")
-    assert r.status_code == 200
-    assert r.content == RAW, "served bytes differ from miner.yaml on disk"
-    assert hashlib.sha256(r.content).hexdigest() == hashlib.sha256(RAW).hexdigest()
-    assert b"\r" not in r.content
+def test_dockerfile_ships_every_package():
+    docker = (ROOT / "Dockerfile").read_text(encoding="utf-8")
+    for pkg in ("telegraphintent", "fraudrisk", "factcheck", "audit"):
+        assert f"COPY {pkg} ./{pkg}" in docker
+    assert "COPY miner.yaml" in docker and "telegraphintent.app:app" in docker

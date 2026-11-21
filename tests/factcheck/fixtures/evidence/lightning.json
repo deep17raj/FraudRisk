@@ -1,0 +1,62 @@
+{
+ "claim": "Lightning never strikes the same place twice.",
+ "recorded_at": "2026-11-16T19:30:01+00:00",
+ "source": "wikipedia (live API snapshot)",
+ "evidence": [
+  {
+   "url": "https://en.wikipedia.org/wiki/Lightning",
+   "title": "Lightning",
+   "snippet": "Lightning is a natural phenomenon consisting of electrostatic discharges occurring through the atmosphere between two electrically charged regions. Following the lightning, the regions become partially or wholly electrically neutralized. Lightning involves a near-instantaneous release of energy on a scale averaging between 200 megajoules and 7 gigajoules. … figuratively, the idea that lightning never strikes the same place twice is a common myth. In fact, lightning can, and often does, strike the same place more than",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Lockheed_Martin_F-35_Lightning_II",
+   "title": "Lockheed Martin F-35 Lightning II",
+   "snippet": "The Lockheed Martin F-35 Lightning II is an American family of single-seat, single-engine, supersonic stealth strike fighters. A multirole combat aircraft designed for air superiority and strike missions, it also has electronic warfare and intelligence, surveillance, and reconnaissance capabilities. The F-35 first saw combat in the 2018 Israeli strikes in Syria, the F-35B in 2018 by US strikes in Afghanistan, and the F-35C in 2024 in US strikes in Yemen.",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Mythology_in_the_Low_Countries",
+   "title": "Mythology in the Low Countries",
+   "snippet": "The mythology of the modern-day Netherlands, Belgium and Luxembourg has its roots in the mythologies of pre-Christian (e.g. Gaulish (Gallo-Roman) and Germanic) cultures, predating the region's Christianization under the influence of the Franks in the Early Middle Ages. At the time of the Roman Empire and in the Early Middle Ages, some of the resident peoples of the Low Countries' included: Germanic tribes north of the Rhine River (with a lot of exceptions like the Eburones or the Celtic Nervii,...) Low Franconians Frisii (and later, in the same area, the Frisians) Tubanti Canninefates Batavian … Donar's lightning . Farmers hung these axes in their homes to protect against lightning strike , in accordance with the belief that ' lightning never strikes the",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Virtual_XI",
+   "title": "Virtual XI",
+   "snippet": "Virtual XI (pronounced \"Virtual Eleven\") is the eleventh studio album by English heavy metal band Iron Maiden, released on 23 March 1998. It is the band's second and final album with Blaze Bayley on vocals, as well as the final album as a five piece, as Bruce Dickinson and Adrian Smith would later return to the band, while Janick Gers who replaced Smith remained in the band. It also marks the first album to utilise a slightly modified logo, with the letters R, M, and N the same size as the other letters as opposed to them being extended. … except he isn't having it.\" Of the album's remaining songs, \" Lightning Strikes Twice \" is, according to Harris, \"a never say never -type song ... It's a very",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Molly_Hatchet",
+   "title": "Molly Hatchet",
+   "snippet": "Molly Hatchet is an American rock band formed by guitarist Dave Hlubek in Jacksonville, Florida in 1971. They experienced popularity and commercial success during the late 1970s and early to mid-1980s amongst southern rock and hard rock fans. The band released six studio albums on Epic Records between 1978 and 1984, including the platinum-selling hit records Molly Hatchet (1978), Flirtin' with Disaster (1979) and Beatin' the Odds (1980). … studio album in five years, and only release on Capitol Records, Lightning Strikes Twice was released in 1989, and was their first one not to appear on",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  }
+ ]
+}

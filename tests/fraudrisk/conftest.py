@@ -13,7 +13,7 @@ from pathlib import Path
 import httpx
 import pytest
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from fraudrisk.config import Settings
 from fraudrisk.llm import LLMClient
@@ -21,7 +21,7 @@ from fraudrisk.models import Family, ParsedSubject, Signal
 from fraudrisk.sources.base import Source
 from fraudrisk.sources.feeds import FeedRegistry
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def make_settings(**kw) -> Settings:

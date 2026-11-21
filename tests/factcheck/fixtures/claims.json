@@ -1,0 +1,48 @@
+{
+  "_readme": "Regression claims. `expected` is ground truth. `acceptable` is the set of verdicts the keyless (heuristic) pipeline may return - hard cases allow 'Unverified' (honest abstention), but a polarity inversion (True-side for a false claim or vice versa) is always a failure. Wikipedia evidence is a live snapshot recorded by scripts/record_fixtures.py; entries with `synthetic_evidence` are hand-written fact-checker items (NOT real articles) used to exercise the Misleading/Mixed paths.",
+  "claims": [
+    {"id": "eiffel", "claim": "The Eiffel Tower is located in Paris.", "expected": "True", "acceptable": ["True", "Mostly True"]},
+    {"id": "einstein", "claim": "Albert Einstein won the Nobel Prize in Physics in 1921.", "expected": "True", "acceptable": ["True", "Mostly True"]},
+    {"id": "pacific", "claim": "The Pacific Ocean is the largest ocean on Earth.", "expected": "True", "acceptable": ["True", "Mostly True", "Unverified"]},
+    {"id": "mars", "claim": "Mars is the fourth planet from the Sun.", "expected": "True", "acceptable": ["True", "Mostly True", "Unverified"]},
+    {"id": "boiling", "claim": "Water boils at 100 degrees Celsius at sea level.", "expected": "True", "acceptable": ["True", "Mostly True", "Unverified"]},
+
+    {"id": "brain10", "claim": "Humans only use 10% of their brains.", "expected": "False", "acceptable": ["False", "Mostly False", "Unverified"]},
+    {"id": "vaccines", "claim": "Vaccines cause autism.", "expected": "False", "acceptable": ["False", "Mostly False"]},
+    {"id": "greatwall", "claim": "The Great Wall of China is visible from space with the naked eye.", "expected": "False", "acceptable": ["False", "Mostly False", "Unverified"]},
+    {"id": "flatearth", "claim": "The Earth is flat.", "expected": "False", "acceptable": ["False", "Mostly False", "Unverified"]},
+    {"id": "sharks", "claim": "Sharks are mammals.", "expected": "False", "acceptable": ["False", "Mostly False", "Unverified"]},
+    {"id": "lightning", "claim": "Lightning never strikes the same place twice.", "expected": "False", "acceptable": ["False", "Mostly False", "Unverified"]},
+
+    {"id": "napoleon", "claim": "Napoleon Bonaparte was unusually short for his time.", "expected": "Mostly False", "acceptable": ["Mostly False", "False", "Mixed", "Misleading", "Unverified"]},
+    {"id": "aspirin", "claim": "Daily low-dose aspirin prevents heart attacks in healthy adults.", "expected": "Mixed", "acceptable": ["Mixed", "Mostly True", "Mostly False", "Misleading", "Unverified"]},
+
+    {
+      "id": "crime-misleading",
+      "claim": "Crime in Springfield doubled last year.",
+      "expected": "Misleading",
+      "acceptable": ["Misleading", "Mixed"],
+      "synthetic_evidence": [
+        {"url": "https://www.politifact.com/factchecks/2026/synthetic/springfield-crime/", "title": "Springfield crime did not 'double' in any meaningful sense", "snippet": "Springfield crime doubled last year from 2 to 4 reported incidents in one district; the claim is misleading because it omits the tiny absolute numbers and that citywide crime fell.", "rating": "Misleading"},
+        {"url": "https://www.snopes.com/fact-check/synthetic-springfield-crime/", "title": "Did crime double in Springfield?", "snippet": "Springfield crime doubled in one district last year, but the claim lacks context: the absolute numbers were tiny and citywide totals declined.", "rating": "Missing Context"}
+      ],
+      "synthetic": true
+    },
+    {
+      "id": "emissions-mixed",
+      "claim": "Acme Corp cut its emissions by 40% since 2015.",
+      "expected": "Mixed",
+      "acceptable": ["Mixed"],
+      "synthetic_evidence": [
+        {"url": "https://www.reuters.com/fact-check/synthetic-acme-emissions/", "title": "Acme Corp emissions claim", "snippet": "Acme Corp says it cut its emissions by 40% since 2015. Reuters verified the figure against its audited filings.", "rating": "True"},
+        {"url": "https://www.fullfact.org/environment/synthetic-acme-emissions/", "title": "Acme Corp emissions claim", "snippet": "Acme Corp claims it cut its emissions by 40% since 2015. Full Fact found the cut excludes supply-chain emissions and is false for total emissions.", "rating": "False"}
+      ],
+      "synthetic": true
+    },
+
+    {"id": "obscure-mayor", "claim": "The mayor of Tiny Falls, Idaho approved a $41,200 bike lane budget in March 2021.", "expected": "Unverified", "acceptable": ["Unverified"]},
+    {"id": "obscure-cat", "claim": "My neighbor's cat Whiskers was born on 14 June 2019 in Reno.", "expected": "Unverified", "acceptable": ["Unverified"]},
+    {"id": "opinion", "claim": "Pineapple on pizza is the best topping.", "expected": "Unverified", "acceptable": ["Unverified"]},
+    {"id": "prediction", "claim": "Bitcoin will reach $1,000,000 by 2030.", "expected": "Unverified", "acceptable": ["Unverified"]}
+  ]
+}

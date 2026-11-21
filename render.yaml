@@ -1,26 +1,45 @@
-# Render blueprint.
+# Render blueprint: ONE web service hosting all three intents.
 # NOTE: the free web-service tier sleeps after ~15 min idle (30-60 s cold start), which will
 # fail Telegraph's spot-checks and can cost you routing. Use the paid "starter" instance below,
 # or keep a pinger hitting /healthz.
 services:
   - type: web
-    name: sentinel-fraud-risk
+    name: telegraph-intent-miner
     runtime: docker
     plan: starter
     healthCheckPath: /healthz
     autoDeploy: true
     envVars:
+      # --- shared by all three intents
       - key: ANTHROPIC_API_KEY
         sync: false
+      - key: LOG_LEVEL
+        value: INFO
+      # Per-intent model. Prefix = FRAUDRISK_ / FACTCHECK_ / AUDIT_ (see telegraphintent/app.py).
+      - key: FRAUDRISK_ANTHROPIC_MODEL
+        value: claude-opus-5-5
+      - key: FRAUDRISK_ANTHROPIC_EFFORT
+        value: low
+      - key: FACTCHECK_ANTHROPIC_MODEL
+        value: claude-haiku-5-5
+      - key: AUDIT_ANTHROPIC_MODEL
+        value: claude-opus-5-5
+      - key: AUDIT_ANTHROPIC_EFFORT
+        value: low
+      # --- fraud risk
       - key: IPINFO_TOKEN
         sync: false
       - key: IP2LOCATION_KEY
         sync: false
-      - key: ANTHROPIC_MODEL
-        value: claude-opus-5-5
-      - key: ANTHROPIC_EFFORT
-        value: low
       - key: REASONING_MODE
         value: auto
-      - key: LOG_LEVEL
-        value: INFO
+      # --- fact check
+      - key: TAVILY_API_KEY
+        sync: false
+      - key: GOOGLE_FACTCHECK_API_KEY
+        sync: false
+      - key: STANCE_MODE
+        value: auto
+      # --- contract audit
+      - key: EXTRACTION_MODE
+        value: auto

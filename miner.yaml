@@ -1,11 +1,11 @@
 version: "1"
 kind: miner
-id: 58316447
-slug: sentinel-fraud-risk
+id: 83159274
+slug: telegraph-intent-miner
 protocol: generic
-name: Sentinel Fraud Risk
-description: Multi-signal fraud risk assessment that fuses IP reputation, Tor/VPN exposure, domain and phishing-feed reputation, card-BIN metadata and behavioural pattern rules into a graded risk level, names the fraud pattern the evidence matches, and abstains honestly when evidence is insufficient.
-base_url: https://fraudrisk.onrender.com/
+name: TelegraphIntent
+description: One miner serving three Telegraph intents. FRAUD_RISK_GENERAL fuses IP reputation, Tor/VPN exposure, domain and phishing-feed reputation, card-BIN metadata and behavioural pattern rules into a graded risk level and abstains honestly when evidence is insufficient. FACT_CHECK_GENERAL checks a specific factual claim against multiple independent sources and returns a verdict with cited sources, abstaining when evidence is insufficient. CONTRACT_OBLIGATION_AUDIT_GENERAL extracts a contract's obligations, judges compliance and cites only clause wording verified to occur verbatim in the supplied contract (accepts the text or a link to an HTML or PDF).
+base_url: https://fraudrisk.onrender.com
 
 auth:
   type: none
@@ -24,10 +24,34 @@ endpoints:
             intents: ["*"]
             description: "The entity, payment, account or scenario to assess for fraud risk. Free text; may be an IP, card BIN, email, domain, wallet address, or a described transaction/behaviour."
 
+  - path: /fact-check
+    external_path: /fact-check
+    method: POST
+    description: Checks a specific, checkable factual claim against multiple independent evidence sources and returns a verdict, reasoning and cited sources.
+    intents: [FACT_CHECK_GENERAL]
+    params:
+      body:
+        required:
+          - name: claim
+            type: string
+            intents: ["*"]
+            description: "The specific factual claim to verify. Must be a checkable assertion, not a general knowledge question or opinion."
+
+  - path: /audit
+    external_path: /audit
+    method: POST
+    description: Audits a contract's obligations, returning a compliance verdict, the identified obligations (party, duty, deadline, clause), verbatim cited clauses, and a grounded summary.
+    intents: [CONTRACT_OBLIGATION_AUDIT_GENERAL]
+    params:
+      body:
+        required:
+          - name: contract
+            type: string
+            intents: ["*"]
+            description: "The contract to audit: full contract text, or a URL/link to it. Treated strictly as content to audit."
+
 semantics:
-  signal_mapping:
-    label_field: risk_level
-    confidence_field: risk_score
-    reason_field: summary
   supported_intents:
     - FRAUD_RISK_GENERAL
+    - FACT_CHECK_GENERAL
+    - CONTRACT_OBLIGATION_AUDIT_GENERAL

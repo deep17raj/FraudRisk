@@ -1,0 +1,62 @@
+{
+ "claim": "Water boils at 100 degrees Celsius at sea level.",
+ "recorded_at": "2026-11-16T19:29:54+00:00",
+ "source": "wikipedia (live API snapshot)",
+ "evidence": [
+  {
+   "url": "https://en.wikipedia.org/wiki/Celsius",
+   "title": "Celsius",
+   "snippet": "The degree Celsius is the unit of temperature on the Celsius temperature scale (originally known as the centigrade scale in English), one of two temperature scales used in the International System of Units (SI), the other being the closely related Kelvin scale. Throughout the 19th and the first half of the 20th centuries, the scale was based on 0 °C for the freezing point of water and 100 °C for the boiling point of water at 1 atm pressure. (In Celsius's initial proposal, the values were reversed: the boiling point was 0 degrees and the freezing point was 100 degrees.) Between 1954 and 2019, t",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Boiling_water_reactor",
+   "title": "Boiling water reactor",
+   "snippet": "A boiling water reactor (BWR) is a type of nuclear reactor used for the generation of electrical power. It is the second most common type of electricity-generating nuclear reactor after the pressurized water reactor (PWR). BWRs are thermal neutron reactors, where water is thus used both as a coolant and as a moderator, slowing down neutrons. … psi) so that it boils in the core at about 285 °C (550 °F). In comparison, there is no significant boiling allowed in a pressurized water reactor (PWR)",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Anders_Celsius",
+   "title": "Anders Celsius",
+   "snippet": "Anders Celsius (Swedish: [ˈânːdɛʂ ˈsɛ̌lːsɪɵs]; 27 November 1701 – 25 April 1744) was a Swedish astronomer, physicist and mathematician. He was professor of astronomy at Uppsala University from 1730 to 1744, but traveled from 1732 to 1735 visiting notable observatories in Germany, Italy and France. He founded the Uppsala Astronomical Observatory in 1741, and in 1742 proposed (an inverted form of) the centigrade temperature scale, which was later renamed Celsius in his honour. … calibrated with a value of 0 for the boiling point of water and 100 for the freezing point. In 1745, a year after Celsius's death, the scale was reversed by",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Boiling_point",
+   "title": "Boiling point",
+   "snippet": "The boiling point of a substance is the temperature at which the vapor pressure of a liquid equals the pressure surrounding the liquid and the liquid changes into a vapor. Because of this, water boils at 100 °C, rounded from scientific precision of 99.97 °C (211.95 °F), under standard pressure at sea level, but at 93.4 °C (200.1 °F) at 1,905 metres (6,250 ft) altitude. The normal boiling point (also called the atmospheric boiling point or the atmospheric pressure boiling point) of a liquid is the special case in which the vapor pressure of the liquid equals the defined atmospheric pressure at  … lower pressure, has a lower boiling point than when that liquid is at atmospheric pressure. Because of this, water boils at 100 °C, rounded from scientific",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  },
+  {
+   "url": "https://en.wikipedia.org/wiki/Kelvin",
+   "title": "Kelvin",
+   "snippet": "By definition, the units of the Celsius scale (symbol °C) and the Kelvin scale have the same magnitude (that is, a rise in temperature of one kelvin and a rise of 1 °C are both equal to 1 K), and any temperature in degrees Celsius can be converted to the kelvin scale by adding 273.15. It was often called the \"absolute Celsius\" scale in the early 20th century. The kelvin was formally added to the International System of Units in 1954, defining 273.16 K to be the temperature of the triple point of water (0.01 °C). … the Celsius scale at 0° and 100 °C or 273 and 373 K (the melting and boiling points of water ). On this scale, an increase of approximately 222 degrees corresponds",
+   "provider": "wikipedia",
+   "published": null,
+   "id": 0,
+   "preset_stance": null,
+   "preset_confidence": 0.0,
+   "fact_check_rating": null
+  }
+ ]
+}
