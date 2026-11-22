@@ -103,6 +103,30 @@ def test_trailing_slash_still_routes(client, spec):
     assert client.post(spec.path + "/", json=json.loads(spec.probe)).status_code == 200
 
 
+@by_intent()
+def test_a_cors_preflight_on_every_intent_path_succeeds(client, spec):
+    r = client.options(spec.path, headers={"Origin": "https://anjoman.ai", "Access-Control-Request-Method": "POST"})
+    assert r.status_code == 204
+    assert r.headers["access-control-allow-origin"] == "*"
+    assert "POST" in r.headers["access-control-allow-methods"]
+    assert r.content == b""
+
+
+@by_intent()
+def test_the_real_response_also_carries_cors_headers(client, spec):
+    r = client.post(spec.path, json=json.loads(spec.probe))
+    assert r.headers["access-control-allow-origin"] == "*"
+    assert r.headers["vary"].lower() == "origin"
+
+
+@pytest.mark.parametrize("path", ["/healthz", "/miner.yaml", "/", "/nope"])
+def test_cors_preflight_and_headers_cover_the_non_intent_routes_too(client, path):
+    pre = client.options(path, headers={"Origin": "https://anjoman.ai", "Access-Control-Request-Method": "GET"})
+    assert pre.status_code == 204 and pre.headers["access-control-allow-origin"] == "*"
+    real = client.get(path)
+    assert real.headers["access-control-allow-origin"] == "*"
+
+
 def test_healthz_reports_every_intent(client):
     body = client.get("/healthz").json()
     assert body["status"] == "ok"

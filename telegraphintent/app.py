@@ -8,6 +8,11 @@ the single source of truth; `miner.yaml` is generated from the same list (script
     GET  /miner.yaml -> the single registration file, byte-exact
     GET  /           -> index
 
+Every response carries permissive CORS headers (`Access-Control-Allow-Origin: *`), and `OPTIONS` on any
+path answers a CORS preflight directly, so a browser-based caller (a registration or validation tool) can
+reach every route without first needing a same-origin or server-side proxy. These are public, keyless,
+read-only endpoints, so no origin or credential is restricted.
+
 Each intent package keeps its own guarantees (always HTTP 200, exactly the intent's response fields,
 its own exception handler). This module only routes a request to the right package's own FastAPI app by
 path and runs all the lifespans together, so nothing about an intent's behaviour changes by being
@@ -80,6 +85,36 @@ async def _json(send, payload: dict, status: int = 200) -> None:
     await send({"type": "http.response.body", "body": body})
 
 
+#: Appended to every response, not only a preflight's: a plain cross-origin GET/POST still needs
+#: Access-Control-Allow-Origin on the real response, and Vary: Origin so a cache never serves one
+#: origin's response to another.
+CORS_HEADERS: list[tuple[bytes, bytes]] = [
+    (b"access-control-allow-origin", b"*"),
+    (b"vary", b"origin"),
+]
+#: Sent only on the OPTIONS preflight response itself.
+PREFLIGHT_ONLY_HEADERS: list[tuple[bytes, bytes]] = [
+    (b"access-control-allow-methods", b"GET, POST, HEAD, OPTIONS"),
+    (b"access-control-allow-headers", b"*"),
+    (b"access-control-max-age", b"86400"),
+]
+
+
+def _cors_send(send) -> Callable:
+    """Wrap `send` so every `http.response.start` it forwards carries the CORS headers above."""
+    async def wrapped(message: dict) -> None:
+        if message.get("type") == "http.response.start":
+            message = {**message, "headers": [*message.get("headers", []), *CORS_HEADERS]}
+        await send(message)
+    return wrapped
+
+
+async def _preflight(send) -> None:
+    await send({"type": "http.response.start", "status": 204,
+                "headers": [*CORS_HEADERS, *PREFLIGHT_ONLY_HEADERS, (b"content-length", b"0")]})
+    await send({"type": "http.response.body", "body": b""})
+
+
 class TelegraphIntentApp:
     """Tiny ASGI router in front of the per-intent FastAPI apps."""
 
@@ -116,6 +151,12 @@ class TelegraphIntentApp:
             return
         path = scope["path"].rstrip("/") or "/"
         method = scope["method"]
+
+        if method == "OPTIONS":
+            # A browser's CORS preflight for any path, known or not: answer it directly so the real
+            # request (GET/POST) that follows is never blocked before it reaches a route.
+            return await _preflight(send)
+        send = _cors_send(send)
 
         if path in self.routes:
             # Delegate everything on an intent path (including a wrong method) to that package.
