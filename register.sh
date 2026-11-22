@@ -22,7 +22,7 @@ YAML_FILE="${YAML_FILE:-miner.yaml}"
 MIN_PRICE="${MIN_PRICE:-10000}"
 BOND_APPROVE="${BOND_APPROVE:-10000000000000000000}"
 NODE="${NODE:-https://devnode.telegraphprotocol.com}"
-INTENTS='["FRAUD_RISK_GENERAL","FACT_CHECK_GENERAL","CONTRACT_OBLIGATION_AUDIT_GENERAL"]'
+INTENTS='["FRAUD_RISK_GENERAL","FACT_CHECK_GENERAL","CONTRACT_OBLIGATION_AUDIT_GENERAL","IP_GEOLOCATION_GENERAL","EMAIL_SECURITY_GENERAL","URL_SAFE_GENERAL","MALWARE_DETECTION_HASH"]'
 
 die() { echo "ERROR: $*" >&2; exit 1; }
 
@@ -66,6 +66,10 @@ probe() {  # probe <path> <json body> <field regex> <field regex> ...
 probe /fraud-risk '{"subject":"registration smoke test: a first transfer to a new payee"}' risk_level risk_score signals summary
 probe /fact-check '{"claim":"The Eiffel Tower is in Paris."}' claim verdict reasoning sources
 probe /audit '{"contract":"1.1 The Supplier shall deliver the Goods by 1 March 2026. 1.2 The Buyer shall pay GBP 10,000 within thirty (30) days of invoice."}' verdict obligations clauses summary
+probe /ip-geolocation '{"ip":"8.8.8.8"}' ip country city latitude longitude isp
+probe /email-security '{"domain":"example.com","record_type":"MX"}' lookup_ok
+probe /url-safe '{"url":"https://www.example.com/"}' url verdict detections summary
+probe /malware-detection '{"indicator":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f"}' malicious
 
 echo "-> checking id/slug are unused on $NODE ..."
 if LIST="$(curl -fsS --max-time 120 "$NODE/api/miners")"; then
@@ -77,7 +81,8 @@ else
   echo "   The dry run below still reverts if the id or slug is taken, so this is not fatal."
 fi
 
-for INTENT in FRAUD_RISK_GENERAL FACT_CHECK_GENERAL CONTRACT_OBLIGATION_AUDIT_GENERAL; do
+for INTENT in FRAUD_RISK_GENERAL FACT_CHECK_GENERAL CONTRACT_OBLIGATION_AUDIT_GENERAL \
+              IP_GEOLOCATION_GENERAL EMAIL_SECURITY_GENERAL URL_SAFE_GENERAL MALWARE_DETECTION_HASH; do
   echo "-> checking $INTENT is a canonical intent ..."
   [ "$(cast call "$DIAMOND" "isCanonicalIntent(string)(bool)" "$INTENT" --rpc-url "$RPC")" = "true" ]     || die "$INTENT is not canonical on this Diamond (wrong DIAMOND/RPC?)"
 done

@@ -1,4 +1,4 @@
-"""The single miner.yaml must satisfy Telegraph's closed schema and match all three intents.
+"""The single miner.yaml must satisfy Telegraph's closed schema and match all seven intents.
 
 Registration is rejected outright on any unknown key, so these tests are the cheap way to
 find that out before spending the MACHINA bond on a failing transaction.
@@ -27,11 +27,16 @@ SEMANTICS = {"signal_mapping", "supported_intents"}
 PARAM = {"name", "type", "intents", "description", "accepted_fields"}
 REQUIRED = {"version", "kind", "id", "slug", "name", "base_url"}
 
-#: path -> (intent, request field)
+#: path -> (intent, the intent's request params in order). Names are Telegraph's own, taken from
+#: GET /engine/v1/intents/<INTENT> (`request.params`); the node builds each call from these.
 EXPECTED = {
-    "/fraud-risk": ("FRAUD_RISK_GENERAL", "subject"),
-    "/fact-check": ("FACT_CHECK_GENERAL", "claim"),
-    "/audit": ("CONTRACT_OBLIGATION_AUDIT_GENERAL", "contract"),
+    "/fraud-risk": ("FRAUD_RISK_GENERAL", ("subject",)),
+    "/fact-check": ("FACT_CHECK_GENERAL", ("claim",)),
+    "/audit": ("CONTRACT_OBLIGATION_AUDIT_GENERAL", ("contract",)),
+    "/ip-geolocation": ("IP_GEOLOCATION_GENERAL", ("ip",)),
+    "/email-security": ("EMAIL_SECURITY_GENERAL", ("domain", "record_type")),
+    "/url-safe": ("URL_SAFE_GENERAL", ("url",)),
+    "/malware-detection": ("MALWARE_DETECTION_HASH", ("indicator",)),
 }
 
 
@@ -55,17 +60,19 @@ def test_identity_fields():
     assert DOC["description"].strip() and DOC["name"].strip()
 
 
-def test_one_endpoint_per_intent_with_the_right_request_field():
+def test_one_endpoint_per_intent_with_the_right_request_fields():
     eps = {ep["path"]: ep for ep in DOC["endpoints"]}
-    assert set(eps) == set(EXPECTED), "miner.yaml must declare exactly the three intent endpoints"
-    for path, (intent, field) in EXPECTED.items():
+    assert set(eps) == set(EXPECTED), "miner.yaml must declare exactly the seven intent endpoints"
+    for path, (intent, fields) in EXPECTED.items():
         ep = eps[path]
         assert ep["external_path"] == path and ep["method"] == "POST"
         assert ep["description"].strip() and ep["intents"] == [intent]
-        (p,) = ep["params"]["body"]["required"]
-        assert p["name"] == field and p["type"] == "string"
-        assert p["intents"] == ["*"] and p["description"]
-        assert set(p) <= PARAM, set(p) - PARAM
+        required = ep["params"]["body"]["required"]
+        assert tuple(p["name"] for p in required) == fields
+        assert "optional" not in ep["params"]["body"], "every request param of these intents is required"
+        for p in required:
+            assert p["type"] == "string" and p["intents"] == ["*"] and p["description"]
+            assert set(p) <= PARAM, set(p) - PARAM
 
 
 def test_supported_intents_are_consistent():
@@ -109,6 +116,7 @@ def test_register_script_covers_every_intent():
 
 def test_dockerfile_ships_every_package():
     docker = (ROOT / "Dockerfile").read_text(encoding="utf-8")
-    for pkg in ("telegraphintent", "fraudrisk", "factcheck", "audit"):
+    for pkg in ("telegraphintent", "fraudrisk", "factcheck", "audit", "intentkit", "ipgeo", "emailsec",
+                "urlsafe", "malware"):
         assert f"COPY {pkg} ./{pkg}" in docker
     assert "COPY miner.yaml" in docker and "telegraphintent.app:app" in docker

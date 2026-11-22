@@ -4,7 +4,7 @@ id: 83159274
 slug: telegraph-intent-miner
 protocol: generic
 name: TelegraphIntent
-description: One miner serving three Telegraph intents. FRAUD_RISK_GENERAL fuses IP reputation, Tor/VPN exposure, domain and phishing-feed reputation, card-BIN metadata and behavioural pattern rules into a graded risk level and abstains honestly when evidence is insufficient. FACT_CHECK_GENERAL checks a specific factual claim against multiple independent sources and returns a verdict with cited sources, abstaining when evidence is insufficient. CONTRACT_OBLIGATION_AUDIT_GENERAL extracts a contract's obligations, judges compliance and cites only clause wording verified to occur verbatim in the supplied contract (accepts the text or a link to an HTML or PDF).
+description: One miner serving seven Telegraph intents. FRAUD_RISK_GENERAL fuses IP reputation, Tor/VPN exposure, domain and phishing-feed reputation, card-BIN metadata and behavioural pattern rules into a graded risk level and abstains honestly when evidence is insufficient. FACT_CHECK_GENERAL checks a specific factual claim against multiple independent sources and returns a verdict with cited sources, abstaining when evidence is insufficient. CONTRACT_OBLIGATION_AUDIT_GENERAL extracts a contract's obligations, judges compliance and cites only clause wording verified to occur verbatim in the supplied contract (accepts the text or a link to an HTML or PDF). IP_GEOLOCATION_GENERAL locates an IP address by consensus of several keyless geolocation providers. EMAIL_SECURITY_GENERAL reports whether a DNS lookup of a given record type for a mail domain succeeds (DNS status NOERROR). URL_SAFE_GENERAL checks a URL against OpenPhish's live phishing feed and Cloudflare's malware and phishing DNS filter, counting the sources that flag it. MALWARE_DETECTION_HASH reports whether a file hash (MD5, SHA-1 or SHA-256), domain or IP address is flagged as malicious by CIRCL hashlookup, Team Cymru's malware hash registry, AlienVault OTX, OpenPhish and Cloudflare's security DNS.
 base_url: https://fraudrisk.onrender.com
 
 auth:
@@ -50,8 +50,68 @@ endpoints:
             intents: ["*"]
             description: "The contract to audit: full contract text, or a URL/link to it. Treated strictly as content to audit."
 
+  - path: /ip-geolocation
+    external_path: /ip-geolocation
+    method: POST
+    description: Locates an IP address (IPv4 or IPv6) and returns its country, city, latitude, longitude and network operator, taking the consensus of several independent geolocation providers.
+    intents: [IP_GEOLOCATION_GENERAL]
+    params:
+      body:
+        required:
+          - name: ip
+            type: string
+            intents: ["*"]
+            description: "The IP address to locate, IPv4 or IPv6, for example 8.8.8.8."
+
+  - path: /email-security
+    external_path: /email-security
+    method: POST
+    description: Reports whether a DNS lookup of the given record type for a mail domain succeeds, that is whether the DNS status is 0 (NOERROR).
+    intents: [EMAIL_SECURITY_GENERAL]
+    params:
+      body:
+        required:
+          - name: domain
+            type: string
+            intents: ["*"]
+            description: "The email domain to look up, for example example.com."
+          - name: record_type
+            type: string
+            intents: ["*"]
+            description: "The DNS record type to look up, for example MX or TXT."
+
+  - path: /url-safe
+    external_path: /url-safe
+    method: POST
+    description: Checks a URL or domain against OpenPhish's live phishing feed and Cloudflare's malware and phishing DNS filter and returns a verdict, the number of sources that flag it, and a summary naming them.
+    intents: [URL_SAFE_GENERAL]
+    params:
+      body:
+        required:
+          - name: url
+            type: string
+            intents: ["*"]
+            description: "The URL (or bare domain) to check, for example https://login-secure-update.example.com/verify."
+
+  - path: /malware-detection
+    external_path: /malware-detection
+    method: POST
+    description: Reports whether a file hash (MD5, SHA-1 or SHA-256), domain or IP address is flagged as malicious by CIRCL hashlookup, Team Cymru's malware hash registry, AlienVault OTX, OpenPhish and Cloudflare's security DNS.
+    intents: [MALWARE_DETECTION_HASH]
+    params:
+      body:
+        required:
+          - name: indicator
+            type: string
+            intents: ["*"]
+            description: "The file hash (MD5, SHA-1 or SHA-256), domain or IP address to check."
+
 semantics:
   supported_intents:
     - FRAUD_RISK_GENERAL
     - FACT_CHECK_GENERAL
     - CONTRACT_OBLIGATION_AUDIT_GENERAL
+    - IP_GEOLOCATION_GENERAL
+    - EMAIL_SECURITY_GENERAL
+    - URL_SAFE_GENERAL
+    - MALWARE_DETECTION_HASH

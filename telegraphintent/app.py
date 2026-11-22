@@ -1,23 +1,28 @@
-"""Combined ASGI entrypoint: one process, one host, one miner.yaml, three intents.
+"""Combined ASGI entrypoint: one process, one host, one miner.yaml, seven intents.
 
-    POST /fraud-risk   -> FRAUD_RISK_GENERAL               (package `fraudrisk`)
-    POST /fact-check   -> FACT_CHECK_GENERAL               (package `factcheck`)
-    POST /audit        -> CONTRACT_OBLIGATION_AUDIT_GENERAL (package `audit`)
-    GET  /healthz      -> aggregate health of all three
-    GET  /miner.yaml   -> the single registration file, byte-exact
-    GET  /             -> index
+    POST /fraud-risk        -> FRAUD_RISK_GENERAL                (package `fraudrisk`)
+    POST /fact-check        -> FACT_CHECK_GENERAL                (package `factcheck`)
+    POST /audit             -> CONTRACT_OBLIGATION_AUDIT_GENERAL (package `audit`)
+    POST /ip-geolocation    -> IP_GEOLOCATION_GENERAL            (package `ipgeo`)
+    POST /email-security    -> EMAIL_SECURITY_GENERAL            (package `emailsec`)
+    POST /url-safe          -> URL_SAFE_GENERAL                  (package `urlsafe`)
+    POST /malware-detection -> MALWARE_DETECTION_HASH            (package `malware`)
+    GET  /healthz           -> aggregate health of all seven
+    GET  /miner.yaml        -> the single registration file, byte-exact
+    GET  /                  -> index
 
 Each intent package is untouched and keeps its own guarantees (always HTTP 200, exactly the
 intent's response fields, its own exception handler). This module only routes a request to the
-right package's own FastAPI app by path and runs all three lifespans together, so nothing about
+right package's own FastAPI app by path and runs all the lifespans together, so nothing about
 an intent's behaviour changes by being hosted alongside the others.
 
 Per-intent configuration
 ------------------------
-The three packages read overlapping environment variable names (ANTHROPIC_MODEL, CACHE_TTL_S,
-LOG_LEVEL, ...). Shared names apply to all three. To give one intent a different value, prefix
-the name: FRAUDRISK_ANTHROPIC_MODEL, FACTCHECK_ANTHROPIC_MODEL, AUDIT_ANTHROPIC_MODEL. A prefixed
-variable wins over the shared one for that intent only.
+The packages read overlapping environment variable names (ANTHROPIC_MODEL, CACHE_TTL_S,
+GLOBAL_TIMEOUT_S, LOG_LEVEL, ...). Shared names apply to every intent. To give one intent a
+different value, prefix the name: FRAUDRISK_, FACTCHECK_, AUDIT_, IPGEO_, EMAILSEC_, URLSAFE_ or
+MALWARE_ (for example MALWARE_GLOBAL_TIMEOUT_S). A prefixed variable wins over the shared one for
+that intent only. The four network-check intents need no API key.
 """
 from __future__ import annotations
 
@@ -71,11 +76,43 @@ def _build_audit():
         return create_app(Settings.from_env())
 
 
+def _build_ipgeo():
+    from ipgeo.app import create_app
+    from ipgeo.config import Settings
+    with scoped_env("IPGEO"):
+        return create_app(Settings.from_env())
+
+
+def _build_emailsec():
+    from emailsec.app import create_app
+    from emailsec.config import Settings
+    with scoped_env("EMAILSEC"):
+        return create_app(Settings.from_env())
+
+
+def _build_urlsafe():
+    from urlsafe.app import create_app
+    from urlsafe.config import Settings
+    with scoped_env("URLSAFE"):
+        return create_app(Settings.from_env())
+
+
+def _build_malware():
+    from malware.app import create_app
+    from malware.config import Settings
+    with scoped_env("MALWARE"):
+        return create_app(Settings.from_env())
+
+
 #: (name, intent, POST path, builder). The POST path must match miner.yaml's endpoint path.
 INTENTS: list[tuple[str, str, str, Callable]] = [
     ("fraudrisk", "FRAUD_RISK_GENERAL", "/fraud-risk", _build_fraudrisk),
     ("factcheck", "FACT_CHECK_GENERAL", "/fact-check", _build_factcheck),
     ("audit", "CONTRACT_OBLIGATION_AUDIT_GENERAL", "/audit", _build_audit),
+    ("ipgeo", "IP_GEOLOCATION_GENERAL", "/ip-geolocation", _build_ipgeo),
+    ("emailsec", "EMAIL_SECURITY_GENERAL", "/email-security", _build_emailsec),
+    ("urlsafe", "URL_SAFE_GENERAL", "/url-safe", _build_urlsafe),
+    ("malware", "MALWARE_DETECTION_HASH", "/malware-detection", _build_malware),
 ]
 
 

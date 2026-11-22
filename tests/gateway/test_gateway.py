@@ -11,19 +11,36 @@ from fastapi.testclient import TestClient
 
 from audit.app import create_app as create_audit
 from audit.config import Settings as AuditSettings
+from emailsec.app import create_app as create_emailsec
 from factcheck.app import create_app as create_factcheck
 from factcheck.pipeline import FactCheckPipeline
 from fraudrisk.app import create_app as create_fraud
-from telegraphintent.app import TelegraphIntentApp, YAML_PATH, scoped_env
+from ipgeo.app import create_app as create_ipgeo
+from malware.app import create_app as create_malware
+from telegraphintent.app import INTENTS, TelegraphIntentApp, YAML_PATH, scoped_env
 from tests.audit.conftest import make_settings as audit_settings
 from tests.audit.test_api import StubPipeline as AuditStub
+from tests.emailsec.conftest import make_settings as emailsec_settings
+from tests.emailsec.test_api import StubPipeline as EmailSecStub
 from tests.factcheck.conftest import FakeSource, ev, make_settings as fact_settings
 from tests.fraudrisk.conftest import make_settings as fraud_settings
 from tests.fraudrisk.test_api import StubPipeline as FraudStub
+from tests.ipgeo.conftest import make_settings as ipgeo_settings
+from tests.ipgeo.test_api import StubPipeline as IpGeoStub
+from tests.malware.conftest import make_settings as malware_settings
+from tests.malware.test_api import StubPipeline as MalwareStub
+from tests.urlsafe.conftest import make_settings as urlsafe_settings
+from tests.urlsafe.test_api import StubPipeline as UrlSafeStub
+from urlsafe.app import create_app as create_urlsafe
 
 FACT_EV = [ev("https://en.wikipedia.org/wiki/Eiffel_Tower", "Eiffel Tower",
               "The Eiffel Tower is a wrought-iron lattice tower located in Paris, France.",
               provider="wikipedia")]
+
+ALL_NAMES = {"fraudrisk", "factcheck", "audit", "ipgeo", "emailsec", "urlsafe", "malware"}
+ALL_INTENTS = {"FRAUD_RISK_GENERAL", "FACT_CHECK_GENERAL", "CONTRACT_OBLIGATION_AUDIT_GENERAL",
+               "IP_GEOLOCATION_GENERAL", "EMAIL_SECURITY_GENERAL", "URL_SAFE_GENERAL",
+               "MALWARE_DETECTION_HASH"}
 
 
 def combined() -> TelegraphIntentApp:
@@ -33,6 +50,10 @@ def combined() -> TelegraphIntentApp:
         "factcheck": create_factcheck(fs, FactCheckPipeline(fs, httpx.AsyncClient(),
                                                             sources=[FakeSource("fake", FACT_EV)])),
         "audit": create_audit(audit_settings(), pipeline=AuditStub()),
+        "ipgeo": create_ipgeo(ipgeo_settings(), pipeline=IpGeoStub()),
+        "emailsec": create_emailsec(emailsec_settings(), pipeline=EmailSecStub()),
+        "urlsafe": create_urlsafe(urlsafe_settings(), pipeline=UrlSafeStub()),
+        "malware": create_malware(malware_settings(), pipeline=MalwareStub()),
     }
     return TelegraphIntentApp(apps=apps)
 
@@ -50,12 +71,24 @@ def test_each_intent_answers_with_its_own_exact_fields(client):
     assert r.status_code == 200 and set(r.json()) == {"claim", "verdict", "reasoning", "sources"}
     r = client.post("/audit", json={"contract": "1.1 The Supplier shall deliver the Goods."})
     assert r.status_code == 200 and set(r.json()) == {"verdict", "obligations", "clauses", "summary"}
+    r = client.post("/ip-geolocation", json={"ip": "8.8.8.8"})
+    assert r.status_code == 200 and set(r.json()) == {"ip", "country", "city", "latitude", "longitude", "isp"}
+    r = client.post("/email-security", json={"domain": "example.com", "record_type": "MX"})
+    assert r.status_code == 200 and set(r.json()) == {"lookup_ok"}
+    r = client.post("/url-safe", json={"url": "https://example.com"})
+    assert r.status_code == 200 and set(r.json()) == {"url", "verdict", "detections", "summary"}
+    r = client.post("/malware-detection", json={"indicator": "8.8.8.8"})
+    assert r.status_code == 200 and set(r.json()) == {"malicious"}
 
 
 @pytest.mark.parametrize("path,fields", [
     ("/fraud-risk", {"risk_level", "risk_score", "signals", "summary"}),
     ("/fact-check", {"claim", "verdict", "reasoning", "sources"}),
     ("/audit", {"verdict", "obligations", "clauses", "summary"}),
+    ("/ip-geolocation", {"ip", "country", "city", "latitude", "longitude", "isp"}),
+    ("/email-security", {"lookup_ok"}),
+    ("/url-safe", {"url", "verdict", "detections", "summary"}),
+    ("/malware-detection", {"malicious"}),
 ])
 def test_malformed_body_still_returns_200_with_the_intent_fields(client, path, fields):
     r = client.post(path, content=b"not json", headers={"content-type": "application/json"})
@@ -66,10 +99,10 @@ def test_trailing_slash_still_routes(client):
     assert client.post("/fraud-risk/", json={"subject": "x"}).status_code == 200
 
 
-def test_healthz_reports_all_three_intents(client):
+def test_healthz_reports_all_seven_intents(client):
     body = client.get("/healthz").json()
     assert body["status"] == "ok"
-    assert set(body["intents"]) == {"fraudrisk", "factcheck", "audit"}
+    assert set(body["intents"]) == ALL_NAMES
     assert all(v["status"] == "ok" for v in body["intents"].values())
 
 
@@ -82,8 +115,7 @@ def test_miner_yaml_is_served_byte_exact(client):
 
 def test_index_lists_every_intent(client):
     intents = client.get("/").json()["intents"]
-    assert set(intents) == {"FRAUD_RISK_GENERAL", "FACT_CHECK_GENERAL",
-                            "CONTRACT_OBLIGATION_AUDIT_GENERAL"}
+    assert set(intents) == ALL_INTENTS
 
 
 def test_unknown_path_is_404_json(client):
@@ -98,10 +130,30 @@ def test_every_yaml_endpoint_is_routed():
     assert {ep["path"] for ep in doc["endpoints"]} == set(app.routes)
 
 
-def test_real_module_level_app_builds_all_three_keyless():
+def test_real_module_level_app_builds_all_seven_keyless():
     """The deployed entrypoint (no stubs) must construct and start with no API keys."""
     from telegraphintent.app import app
-    assert set(app.apps) == {"fraudrisk", "factcheck", "audit"}
+    assert set(app.apps) == ALL_NAMES
+
+
+def test_the_router_table_matches_the_expected_intents_and_has_unique_paths():
+    assert {name for name, *_ in INTENTS} == ALL_NAMES
+    assert {intent for _, intent, _, _ in INTENTS} == ALL_INTENTS
+    paths = [p for _, _, p, _ in INTENTS]
+    assert len(paths) == len(set(paths))
+
+
+@pytest.mark.parametrize("prefix,builder_module", [
+    ("IPGEO", "ipgeo"), ("EMAILSEC", "emailsec"), ("URLSAFE", "urlsafe"), ("MALWARE", "malware"),
+])
+def test_each_new_intent_can_be_configured_on_its_own_with_a_prefixed_variable(monkeypatch, prefix, builder_module):
+    import importlib
+    monkeypatch.setenv("GLOBAL_TIMEOUT_S", "7.5")
+    monkeypatch.setenv(f"{prefix}_GLOBAL_TIMEOUT_S", "2.5")
+    settings_cls = importlib.import_module(f"{builder_module}.config").Settings
+    with scoped_env(prefix):
+        assert settings_cls.from_env().global_timeout == 2.5
+    assert settings_cls.from_env().global_timeout == 7.5
 
 
 class TestScopedEnv:

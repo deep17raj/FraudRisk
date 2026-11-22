@@ -10,6 +10,11 @@ COPY telegraphintent ./telegraphintent
 COPY fraudrisk ./fraudrisk
 COPY factcheck ./factcheck
 COPY audit ./audit
+COPY intentkit ./intentkit
+COPY ipgeo ./ipgeo
+COPY emailsec ./emailsec
+COPY urlsafe ./urlsafe
+COPY malware ./malware
 COPY miner.yaml ./miner.yaml
 
 RUN useradd -m app && chown -R app /app

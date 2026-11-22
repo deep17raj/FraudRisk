@@ -1,4 +1,5 @@
-# Render blueprint: ONE web service hosting all three intents.
+# Render blueprint: ONE web service hosting all seven intents. The four network-check intents
+# (ip-geolocation, email-security, url-safe, malware-detection) need no API key and add no variables.
 # NOTE: the free web-service tier sleeps after ~15 min idle (30-60 s cold start), which will
 # fail Telegraph's spot-checks and can cost you routing. Use the paid "starter" instance below,
 # or keep a pinger hitting /healthz.
@@ -10,7 +11,7 @@ services:
     healthCheckPath: /healthz
     autoDeploy: true
     envVars:
-      # --- shared by all three intents
+      # --- shared by all intents
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: LOG_LEVEL
