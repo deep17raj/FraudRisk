@@ -1,0 +1,80 @@
+{
+  "intent_id": "IP_GEOLOCATION_GENERAL",
+  "fetched_at": "2026-11-22T14:48:12Z",
+  "lifecycle_state": "active",
+  "class": "judgment",
+  "evaluation": {
+    "kind": "judgment",
+    "via": "generic",
+    "comparator": null
+  },
+  "request": {
+    "params": [
+      {
+        "name": "ip",
+        "type": "string",
+        "required": true,
+        "description": "IP address"
+      }
+    ],
+    "schema_version": 3,
+    "served_by": "IP_GEOLOCATION"
+  },
+  "response": {
+    "fields": [
+      {
+        "name": "ip",
+        "description": "The IP address located",
+        "type": "string",
+        "off_chain": true
+      },
+      {
+        "name": "country",
+        "description": "Country the address resolves to",
+        "type": "string",
+        "aliases": [
+          "geolocation",
+          "ip location",
+          "ip located"
+        ]
+      },
+      {
+        "name": "city",
+        "description": "City the address resolves to",
+        "type": "string",
+        "off_chain": true
+      },
+      {
+        "name": "latitude",
+        "description": "Latitude of the location",
+        "type": "number",
+        "unit": "degrees",
+        "range": [
+          -90,
+          90
+        ],
+        "scored": true,
+        "decimals": 6
+      },
+      {
+        "name": "longitude",
+        "description": "Longitude of the location",
+        "type": "number",
+        "unit": "degrees",
+        "range": [
+          -180,
+          180
+        ],
+        "decimals": 6
+      },
+      {
+        "name": "isp",
+        "description": "Network operator or ASN owning the address",
+        "type": "string",
+        "off_chain": true
+      }
+    ],
+    "format_version": 3,
+    "served_by": "IP_GEOLOCATION"
+  }
+}

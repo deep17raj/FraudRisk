@@ -1,8 +1,14 @@
 """The combined app routes each path to the right intent package, unchanged, and hosts them
-all in one process behind one /healthz and one byte-exact /miner.yaml."""
+all in one process behind one /healthz and one byte-exact /miner.yaml.
+
+Everything here is derived from `telegraphintent/registry.py`, so adding an intent to the registry extends
+these tests with no edit to this file.
+"""
 from __future__ import annotations
 
 import hashlib
+import importlib
+import json
 import os
 
 import httpx
@@ -18,6 +24,7 @@ from fraudrisk.app import create_app as create_fraud
 from ipgeo.app import create_app as create_ipgeo
 from malware.app import create_app as create_malware
 from telegraphintent.app import INTENTS, TelegraphIntentApp, YAML_PATH, scoped_env
+from telegraphintent.registry import INTENTS as REGISTRY
 from tests.audit.conftest import make_settings as audit_settings
 from tests.audit.test_api import StubPipeline as AuditStub
 from tests.emailsec.conftest import make_settings as emailsec_settings
@@ -25,6 +32,7 @@ from tests.emailsec.test_api import StubPipeline as EmailSecStub
 from tests.factcheck.conftest import FakeSource, ev, make_settings as fact_settings
 from tests.fraudrisk.conftest import make_settings as fraud_settings
 from tests.fraudrisk.test_api import StubPipeline as FraudStub
+from tests.intents.helpers import StubPipeline
 from tests.ipgeo.conftest import make_settings as ipgeo_settings
 from tests.ipgeo.test_api import StubPipeline as IpGeoStub
 from tests.malware.conftest import make_settings as malware_settings
@@ -37,10 +45,17 @@ FACT_EV = [ev("https://en.wikipedia.org/wiki/Eiffel_Tower", "Eiffel Tower",
               "The Eiffel Tower is a wrought-iron lattice tower located in Paris, France.",
               provider="wikipedia")]
 
-ALL_NAMES = {"fraudrisk", "factcheck", "audit", "ipgeo", "emailsec", "urlsafe", "malware"}
-ALL_INTENTS = {"FRAUD_RISK_GENERAL", "FACT_CHECK_GENERAL", "CONTRACT_OBLIGATION_AUDIT_GENERAL",
-               "IP_GEOLOCATION_GENERAL", "EMAIL_SECURITY_GENERAL", "URL_SAFE_GENERAL",
-               "MALWARE_DETECTION_HASH"}
+ALL_NAMES = {s.name for s in REGISTRY}
+ALL_INTENTS = {s.intent for s in REGISTRY}
+ORIGINAL = ("fraudrisk", "factcheck", "audit", "ipgeo", "emailsec", "urlsafe", "malware")
+
+
+def stub_app(spec):
+    """A real intents/<package> app whose pipeline is replaced by a stub answering the empty model."""
+    app_mod = importlib.import_module(f"{spec.package}.app")
+    settings = importlib.import_module(f"{spec.package}.config").Settings()
+    model = app_mod.create_app(settings).state.response_model
+    return app_mod.create_app(settings, pipeline=StubPipeline(model))
 
 
 def combined() -> TelegraphIntentApp:
@@ -55,51 +70,40 @@ def combined() -> TelegraphIntentApp:
         "urlsafe": create_urlsafe(urlsafe_settings(), pipeline=UrlSafeStub()),
         "malware": create_malware(malware_settings(), pipeline=MalwareStub()),
     }
+    for spec in REGISTRY:
+        if spec.name not in apps:
+            apps[spec.name] = stub_app(spec)
     return TelegraphIntentApp(apps=apps)
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def client():
     with TestClient(combined()) as c:
         yield c
 
 
-def test_each_intent_answers_with_its_own_exact_fields(client):
-    r = client.post("/fraud-risk", json={"subject": "203.0.113.9"})
-    assert r.status_code == 200 and set(r.json()) == {"risk_level", "risk_score", "signals", "summary"}
-    r = client.post("/fact-check", json={"claim": "The Eiffel Tower is located in Paris."})
-    assert r.status_code == 200 and set(r.json()) == {"claim", "verdict", "reasoning", "sources"}
-    r = client.post("/audit", json={"contract": "1.1 The Supplier shall deliver the Goods."})
-    assert r.status_code == 200 and set(r.json()) == {"verdict", "obligations", "clauses", "summary"}
-    r = client.post("/ip-geolocation", json={"ip": "8.8.8.8"})
-    assert r.status_code == 200 and set(r.json()) == {"ip", "country", "city", "latitude", "longitude", "isp"}
-    r = client.post("/email-security", json={"domain": "example.com", "record_type": "MX"})
-    assert r.status_code == 200 and set(r.json()) == {"lookup_ok"}
-    r = client.post("/url-safe", json={"url": "https://example.com"})
-    assert r.status_code == 200 and set(r.json()) == {"url", "verdict", "detections", "summary"}
-    r = client.post("/malware-detection", json={"indicator": "8.8.8.8"})
-    assert r.status_code == 200 and set(r.json()) == {"malicious"}
+def by_intent(param="spec"):
+    return pytest.mark.parametrize(param, REGISTRY, ids=[s.intent for s in REGISTRY])
 
 
-@pytest.mark.parametrize("path,fields", [
-    ("/fraud-risk", {"risk_level", "risk_score", "signals", "summary"}),
-    ("/fact-check", {"claim", "verdict", "reasoning", "sources"}),
-    ("/audit", {"verdict", "obligations", "clauses", "summary"}),
-    ("/ip-geolocation", {"ip", "country", "city", "latitude", "longitude", "isp"}),
-    ("/email-security", {"lookup_ok"}),
-    ("/url-safe", {"url", "verdict", "detections", "summary"}),
-    ("/malware-detection", {"malicious"}),
-])
-def test_malformed_body_still_returns_200_with_the_intent_fields(client, path, fields):
-    r = client.post(path, content=b"not json", headers={"content-type": "application/json"})
-    assert r.status_code == 200 and set(r.json()) == fields
+@by_intent()
+def test_each_intent_answers_with_its_own_exact_fields(client, spec):
+    r = client.post(spec.path, json=json.loads(spec.probe))
+    assert r.status_code == 200 and set(r.json()) == set(spec.fields), r.text
 
 
-def test_trailing_slash_still_routes(client):
-    assert client.post("/fraud-risk/", json={"subject": "x"}).status_code == 200
+@by_intent()
+def test_malformed_body_still_returns_200_with_the_intent_fields(client, spec):
+    r = client.post(spec.path, content=b"not json", headers={"content-type": "application/json"})
+    assert r.status_code == 200 and set(r.json()) == set(spec.fields), r.text
 
 
-def test_healthz_reports_all_seven_intents(client):
+@by_intent()
+def test_trailing_slash_still_routes(client, spec):
+    assert client.post(spec.path + "/", json=json.loads(spec.probe)).status_code == 200
+
+
+def test_healthz_reports_every_intent(client):
     body = client.get("/healthz").json()
     assert body["status"] == "ok"
     assert set(body["intents"]) == ALL_NAMES
@@ -130,28 +134,26 @@ def test_every_yaml_endpoint_is_routed():
     assert {ep["path"] for ep in doc["endpoints"]} == set(app.routes)
 
 
-def test_real_module_level_app_builds_all_seven_keyless():
+def test_real_module_level_app_builds_every_intent_keyless():
     """The deployed entrypoint (no stubs) must construct and start with no API keys."""
     from telegraphintent.app import app
     assert set(app.apps) == ALL_NAMES
 
 
-def test_the_router_table_matches_the_expected_intents_and_has_unique_paths():
+def test_the_router_table_matches_the_registry_and_has_unique_paths():
     assert {name for name, *_ in INTENTS} == ALL_NAMES
     assert {intent for _, intent, _, _ in INTENTS} == ALL_INTENTS
     paths = [p for _, _, p, _ in INTENTS]
     assert len(paths) == len(set(paths))
+    assert len(ALL_NAMES) == len(REGISTRY), "two intents share a package name"
 
 
-@pytest.mark.parametrize("prefix,builder_module", [
-    ("IPGEO", "ipgeo"), ("EMAILSEC", "emailsec"), ("URLSAFE", "urlsafe"), ("MALWARE", "malware"),
-])
-def test_each_new_intent_can_be_configured_on_its_own_with_a_prefixed_variable(monkeypatch, prefix, builder_module):
-    import importlib
+@by_intent()
+def test_each_intent_can_be_configured_on_its_own_with_a_prefixed_variable(monkeypatch, spec):
     monkeypatch.setenv("GLOBAL_TIMEOUT_S", "7.5")
-    monkeypatch.setenv(f"{prefix}_GLOBAL_TIMEOUT_S", "2.5")
-    settings_cls = importlib.import_module(f"{builder_module}.config").Settings
-    with scoped_env(prefix):
+    monkeypatch.setenv(f"{spec.prefix}_GLOBAL_TIMEOUT_S", "2.5")
+    settings_cls = importlib.import_module(f"{spec.package}.config").Settings
+    with scoped_env(spec.prefix):
         assert settings_cls.from_env().global_timeout == 2.5
     assert settings_cls.from_env().global_timeout == 7.5
 

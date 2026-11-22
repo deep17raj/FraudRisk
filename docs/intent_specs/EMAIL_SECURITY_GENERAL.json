@@ -1,0 +1,57 @@
+{
+  "intent_id": "EMAIL_SECURITY_GENERAL",
+  "fetched_at": "2026-11-22T14:48:12Z",
+  "lifecycle_state": "active",
+  "class": "judgment",
+  "evaluation": {
+    "kind": "judgment",
+    "via": "generic",
+    "comparator": null
+  },
+  "request": {
+    "params": [
+      {
+        "name": "domain",
+        "type": "string",
+        "required": true,
+        "description": "Email domain"
+      },
+      {
+        "name": "record_type",
+        "type": "string",
+        "required": true,
+        "description": "DNS record type to look up, e.g. MX or TXT"
+      }
+    ],
+    "schema_version": 3,
+    "served_by": "EMAIL_SECURITY"
+  },
+  "response": {
+    "fields": [
+      {
+        "name": "lookup_ok",
+        "description": "Whether the DNS {type} lookup for {name} succeeded: DNS Status 0 (NOERROR) means yes, any other status means no",
+        "type": "bool",
+        "true_when": [
+          "0",
+          "NOERROR"
+        ],
+        "false_when": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "FORMERR",
+          "SERVFAIL",
+          "NXDOMAIN",
+          "NOTIMP",
+          "REFUSED"
+        ],
+        "scored": true
+      }
+    ],
+    "format_version": 3,
+    "served_by": "EMAIL_SECURITY"
+  }
+}

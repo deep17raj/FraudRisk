@@ -4,7 +4,7 @@ id: 83159274
 slug: telegraph-intent-miner
 protocol: generic
 name: TelegraphIntent
-description: One miner serving seven Telegraph intents. FRAUD_RISK_GENERAL fuses IP reputation, Tor/VPN exposure, domain and phishing-feed reputation, card-BIN metadata and behavioural pattern rules into a graded risk level and abstains honestly when evidence is insufficient. FACT_CHECK_GENERAL checks a specific factual claim against multiple independent sources and returns a verdict with cited sources, abstaining when evidence is insufficient. CONTRACT_OBLIGATION_AUDIT_GENERAL extracts a contract's obligations, judges compliance and cites only clause wording verified to occur verbatim in the supplied contract (accepts the text or a link to an HTML or PDF). IP_GEOLOCATION_GENERAL locates an IP address by consensus of several keyless geolocation providers. EMAIL_SECURITY_GENERAL reports whether a DNS lookup of a given record type for a mail domain succeeds (DNS status NOERROR). URL_SAFE_GENERAL checks a URL against OpenPhish's live phishing feed and Cloudflare's malware and phishing DNS filter, counting the sources that flag it. MALWARE_DETECTION_HASH reports whether a file hash (MD5, SHA-1 or SHA-256), domain or IP address is flagged as malicious by CIRCL hashlookup, Team Cymru's malware hash registry, AlienVault OTX, OpenPhish and Cloudflare's security DNS.
+description: One miner serving 25 Telegraph intents. FRAUD_RISK_GENERAL fuses IP reputation, Tor/VPN exposure, domain and phishing-feed reputation, card-BIN metadata and behavioural pattern rules into a graded risk level and abstains honestly when evidence is insufficient. FACT_CHECK_GENERAL checks a specific factual claim against multiple independent sources and returns a verdict with cited sources, abstaining when evidence is insufficient. CONTRACT_OBLIGATION_AUDIT_GENERAL extracts a contract's obligations, judges compliance and cites only clause wording verified to occur verbatim in the supplied contract (accepts the text or a link to an HTML or PDF). IP_GEOLOCATION_GENERAL locates an IP address by consensus of several keyless geolocation providers. EMAIL_SECURITY_GENERAL reports whether a DNS lookup of a given record type for a mail domain succeeds (DNS status NOERROR). URL_SAFE_GENERAL checks a URL against OpenPhish's live phishing feed and Cloudflare's malware and phishing DNS filter, counting the sources that flag it. MALWARE_DETECTION_HASH reports whether a file hash (MD5, SHA-1 or SHA-256), domain or IP address is flagged as malicious by CIRCL hashlookup, Team Cymru's malware hash registry, AlienVault OTX, OpenPhish and Cloudflare's security DNS. SANCTIONS_SCREENING_MATCH_GENERAL screens a name against OFAC's SDN and consolidated sanctions lists with fuzzy matching. CRYPTO_PRICE_USD returns a crypto asset's current dollar price as the consensus of several public exchanges. REGULATORY_FILING_MONITOR_GENERAL counts and lists SEC EDGAR filings in a period. CORPORATE_REGISTRY_LOOKUP_GENERAL looks a company up in GLEIF's LEI registry. SSL_VERIFICATION_CERT checks a host's TLS certificate with a real handshake. CVE_LOOKUP_CVSS returns a CVE's CVSS score and details from NVD. VULNERABILITY_TRIAGE_GENERAL returns a CVE's NVD CVSS base score. WEATHER_CHECK_TEMPERATURE returns a place's current air temperature in Celsius. WEATHER_FORECAST_GENERAL returns a place's forecast high, low, rain chance and condition. GAS_PRICE_GENERAL returns an EVM chain's gas price in gwei and the cost of a transfer. URL_SCAN_VERDICT says whether a URL is safe to visit. THREAT_INTELLIGENCE_INDICATOR reports whether an IP, domain or hash is flagged in public threat feeds. CURRENCY_EXCHANGE_CONVERT converts an amount between two currencies. FX_NOW_CAD returns the current USD/CAD exchange rate. FX_NOW_EUR returns the current USD/EUR exchange rate. FX_NOW_SEK returns the current USD/SEK exchange rate. DNS_RECORD_LOOKUP_GENERAL reports whether a name has a record of a given DNS type. TVL_LOOKUP_GENERAL returns the total value locked of a DeFi protocol or chain.
 base_url: https://fraudrisk.onrender.com
 
 auth:
@@ -106,6 +106,266 @@ endpoints:
             intents: ["*"]
             description: "The file hash (MD5, SHA-1 or SHA-256), domain or IP address to check."
 
+  - path: /sanctions-screening
+    external_path: /sanctions-screening
+    method: POST
+    description: Screens a person or organisation name against OFAC's SDN and consolidated sanctions lists with fuzzy name matching and returns whether it matched, the matching list entries, the lists checked and the best match score from 0 to 1.
+    intents: [SANCTIONS_SCREENING_MATCH_GENERAL]
+    params:
+      body:
+        required:
+          - name: name
+            type: string
+            intents: ["*"]
+            description: "Person or entity name to screen against sanctions lists."
+
+  - path: /crypto-price
+    external_path: /crypto-price
+    method: POST
+    description: Returns the current price of a cryptocurrency in US dollars (BTC, ETH, SOL, BNB, XRP and others), the consensus of several public exchanges' last trade prices.
+    intents: [CRYPTO_PRICE_USD]
+    params:
+      body:
+        required:
+          - name: symbol
+            type: string
+            intents: ["*"]
+            description: "Asset symbol, e.g. BTC."
+
+  - path: /regulatory-filings
+    external_path: /regulatory-filings
+    method: POST
+    description: Counts and lists a company's SEC EDGAR filings in a period, newest first with their URLs; for a topic that is not a registrant it counts EDGAR filings that mention it.
+    intents: [REGULATORY_FILING_MONITOR_GENERAL]
+    params:
+      body:
+        required:
+          - name: entity
+            type: string
+            intents: ["*"]
+            description: "Company, product or concern."
+          - name: period
+            type: string
+            intents: ["*"]
+            description: "Period to search, e.g. last 12 months."
+
+  - path: /corporate-registry
+    external_path: /corporate-registry
+    method: POST
+    description: Looks a company up in the GLEIF global legal-entity registry and returns its legal name, LEI, whether it is active, its jurisdiction, registered address and incorporation date.
+    intents: [CORPORATE_REGISTRY_LOOKUP_GENERAL]
+    params:
+      body:
+        required:
+          - name: company
+            type: string
+            intents: ["*"]
+            description: "Company name or registry identifier."
+          - name: jurisdiction
+            type: string
+            intents: ["*"]
+            description: "Country or jurisdiction of registration."
+
+  - path: /ssl-verification
+    external_path: /ssl-verification
+    method: POST
+    description: "Checks whether a host's TLS certificate is currently valid and trusted by making a real TLS handshake: false for expired, self-signed, wrong-host or untrusted certificates."
+    intents: [SSL_VERIFICATION_CERT]
+    params:
+      body:
+        required:
+          - name: host
+            type: string
+            intents: ["*"]
+            description: "Hostname."
+
+  - path: /cve-lookup
+    external_path: /cve-lookup
+    method: POST
+    description: Looks up a CVE and returns its CVSS base score, severity, description, publication date and reference URLs from NVD (CIRCL as fallback).
+    intents: [CVE_LOOKUP_CVSS]
+    params:
+      body:
+        required:
+          - name: cve_id
+            type: string
+            intents: ["*"]
+            description: "CVE identifier, e.g. CVE-2024-3094."
+
+  - path: /vulnerability-triage
+    external_path: /vulnerability-triage
+    method: POST
+    description: Triages a vulnerability by returning the NVD primary CVSS base score (0.0 to 10.0) of a CVE.
+    intents: [VULNERABILITY_TRIAGE_GENERAL]
+    params:
+      body:
+        required:
+          - name: cve_id
+            type: string
+            intents: ["*"]
+            description: "CVE identifier."
+
+  - path: /weather-temperature
+    external_path: /weather-temperature
+    method: POST
+    description: Returns the current air temperature in degrees Celsius for a city, place name or latitude,longitude, from Open-Meteo.
+    intents: [WEATHER_CHECK_TEMPERATURE]
+    params:
+      body:
+        required:
+          - name: location
+            type: string
+            intents: ["*"]
+            description: "City or place name, or latitude,longitude."
+
+  - path: /weather-forecast
+    external_path: /weather-forecast
+    method: POST
+    description: "Returns the weather forecast for a place over a window of up to 240 hours: the high and low temperature in Celsius, the peak chance of precipitation and the expected condition."
+    intents: [WEATHER_FORECAST_GENERAL]
+    params:
+      body:
+        required:
+          - name: location
+            type: string
+            intents: ["*"]
+            description: "City or place name."
+        optional:
+          - name: window_hours
+            type: integer
+            intents: ["*"]
+            description: "Forecast window in hours, 1 to 240. Defaults to 24."
+
+  - path: /gas-price
+    external_path: /gas-price
+    method: POST
+    description: Returns the current gas price in gwei of an EVM chain (Ethereum, Base, Arbitrum, Optimism, Polygon, BNB Chain, Avalanche) and the dollar cost of a standard 21,000-gas transfer.
+    intents: [GAS_PRICE_GENERAL]
+    params:
+      body:
+        required:
+          - name: chain
+            type: string
+            intents: ["*"]
+            description: "Blockchain network, e.g. ethereum."
+
+  - path: /url-scan
+    external_path: /url-scan
+    method: POST
+    description: Returns whether a URL is safe to visit, checking it against OpenPhish's live phishing feed, Cloudflare's malware and phishing DNS filter and the URL's own structure.
+    intents: [URL_SCAN_VERDICT]
+    params:
+      body:
+        required:
+          - name: url
+            type: string
+            intents: ["*"]
+            description: "The URL."
+
+  - path: /threat-intelligence
+    external_path: /threat-intelligence
+    method: POST
+    description: Reports whether an IP address, domain or file hash is reported as malicious in public threat-intelligence feeds (IPsum's aggregate of IP blocklists, CIRCL, Team Cymru, AlienVault OTX, OpenPhish, Cloudflare security DNS).
+    intents: [THREAT_INTELLIGENCE_INDICATOR]
+    params:
+      body:
+        required:
+          - name: indicator
+            type: string
+            intents: ["*"]
+            description: "IP address, domain, hash, CVE or actor."
+
+  - path: /currency-convert
+    external_path: /currency-convert
+    method: POST
+    description: Converts an amount from one currency to another at the current exchange rate (ECB reference rates, with open.er-api.com for other currencies).
+    intents: [CURRENCY_EXCHANGE_CONVERT]
+    params:
+      body:
+        required:
+          - name: from_currency
+            type: string
+            intents: ["*"]
+            description: "Currency code to convert from, e.g. USD."
+          - name: to_currency
+            type: string
+            intents: ["*"]
+            description: "Currency code to convert into, e.g. EUR."
+        optional:
+          - name: amount
+            type: number
+            intents: ["*"]
+            description: "Amount to convert, in the source currency. Defaults to 1."
+
+  - path: /fx-now-cad
+    external_path: /fx-now-cad
+    method: POST
+    description: Returns the current USD/CAD mid-market exchange rate, how many Canadian dollars one US dollar buys (any other currency code is answered the same way).
+    intents: [FX_NOW_CAD]
+    params:
+      body:
+        required:
+          - name: currency
+            type: string
+            intents: ["*"]
+            description: "Currency code priced against the US dollar, e.g. EUR."
+
+  - path: /fx-now-eur
+    external_path: /fx-now-eur
+    method: POST
+    description: Returns the current USD/EUR mid-market exchange rate, how many euros one US dollar buys (any other currency code is answered the same way).
+    intents: [FX_NOW_EUR]
+    params:
+      body:
+        required:
+          - name: currency
+            type: string
+            intents: ["*"]
+            description: "Currency code priced against the US dollar, e.g. EUR."
+
+  - path: /fx-now-sek
+    external_path: /fx-now-sek
+    method: POST
+    description: Returns the current USD/SEK mid-market exchange rate, how many Swedish kronor one US dollar buys (any other currency code is answered the same way).
+    intents: [FX_NOW_SEK]
+    params:
+      body:
+        required:
+          - name: currency
+            type: string
+            intents: ["*"]
+            description: "Currency code priced against the US dollar, e.g. EUR."
+
+  - path: /dns-record
+    external_path: /dns-record
+    method: POST
+    description: Reports whether a DNS lookup of a record type (A, AAAA, CNAME, MX, NS, TXT, SOA, CAA, SRV, PTR) for a domain name returns at least one record, using Google and Cloudflare DNS-over-HTTPS.
+    intents: [DNS_RECORD_LOOKUP_GENERAL]
+    params:
+      body:
+        required:
+          - name: name
+            type: string
+            intents: ["*"]
+            description: "Domain name."
+          - name: record_type
+            type: string
+            intents: ["*"]
+            description: "DNS record type: A, AAAA, CNAME, MX, NS, TXT, SOA, CAA, SRV or PTR."
+
+  - path: /tvl-lookup
+    external_path: /tvl-lookup
+    method: POST
+    description: Returns the total value locked in US dollars of a DeFi protocol or blockchain from DefiLlama, and for a protocol on a named chain its value locked on that chain.
+    intents: [TVL_LOOKUP_GENERAL]
+    params:
+      body:
+        required:
+          - name: protocol
+            type: string
+            intents: ["*"]
+            description: "DeFi protocol, pool or chain."
+
 semantics:
   supported_intents:
     - FRAUD_RISK_GENERAL
@@ -115,3 +375,21 @@ semantics:
     - EMAIL_SECURITY_GENERAL
     - URL_SAFE_GENERAL
     - MALWARE_DETECTION_HASH
+    - SANCTIONS_SCREENING_MATCH_GENERAL
+    - CRYPTO_PRICE_USD
+    - REGULATORY_FILING_MONITOR_GENERAL
+    - CORPORATE_REGISTRY_LOOKUP_GENERAL
+    - SSL_VERIFICATION_CERT
+    - CVE_LOOKUP_CVSS
+    - VULNERABILITY_TRIAGE_GENERAL
+    - WEATHER_CHECK_TEMPERATURE
+    - WEATHER_FORECAST_GENERAL
+    - GAS_PRICE_GENERAL
+    - URL_SCAN_VERDICT
+    - THREAT_INTELLIGENCE_INDICATOR
+    - CURRENCY_EXCHANGE_CONVERT
+    - FX_NOW_CAD
+    - FX_NOW_EUR
+    - FX_NOW_SEK
+    - DNS_RECORD_LOOKUP_GENERAL
+    - TVL_LOOKUP_GENERAL

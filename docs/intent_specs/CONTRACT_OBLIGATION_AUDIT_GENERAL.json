@@ -1,0 +1,59 @@
+{
+  "intent_id": "CONTRACT_OBLIGATION_AUDIT_GENERAL",
+  "fetched_at": "2026-11-22T14:48:11Z",
+  "lifecycle_state": "active",
+  "class": "judgment",
+  "evaluation": {
+    "kind": "judgment",
+    "via": "generic",
+    "comparator": null
+  },
+  "request": {
+    "params": [
+      {
+        "name": "contract",
+        "type": "string",
+        "required": true,
+        "description": "The contract text, or a link to it"
+      }
+    ],
+    "schema_version": 3,
+    "served_by": "CONTRACT_OBLIGATION_AUDIT"
+  },
+  "response": {
+    "fields": [
+      {
+        "name": "verdict",
+        "description": "Compliance verdict",
+        "type": "enum",
+        "allowed": [
+          "Compliant",
+          "Partially compliant",
+          "Non-compliant",
+          "Unclear"
+        ],
+        "processed": true
+      },
+      {
+        "name": "obligations",
+        "description": "Obligations identified (who owes what by when)",
+        "type": "list",
+        "off_chain": true
+      },
+      {
+        "name": "clauses",
+        "description": "Clause wording cited",
+        "type": "list",
+        "off_chain": true
+      },
+      {
+        "name": "summary",
+        "description": "One- or two-sentence summary of the audit",
+        "type": "string",
+        "off_chain": true
+      }
+    ],
+    "format_version": 3,
+    "served_by": "CONTRACT_OBLIGATION_AUDIT"
+  }
+}

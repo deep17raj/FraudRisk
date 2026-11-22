@@ -1,40 +1,42 @@
-"""Combined ASGI entrypoint: one process, one host, one miner.yaml, seven intents.
+"""Combined ASGI entrypoint: one process, one host, one miner.yaml, every registered intent.
 
-    POST /fraud-risk        -> FRAUD_RISK_GENERAL                (package `fraudrisk`)
-    POST /fact-check        -> FACT_CHECK_GENERAL                (package `factcheck`)
-    POST /audit             -> CONTRACT_OBLIGATION_AUDIT_GENERAL (package `audit`)
-    POST /ip-geolocation    -> IP_GEOLOCATION_GENERAL            (package `ipgeo`)
-    POST /email-security    -> EMAIL_SECURITY_GENERAL            (package `emailsec`)
-    POST /url-safe          -> URL_SAFE_GENERAL                  (package `urlsafe`)
-    POST /malware-detection -> MALWARE_DETECTION_HASH            (package `malware`)
-    GET  /healthz           -> aggregate health of all seven
-    GET  /miner.yaml        -> the single registration file, byte-exact
-    GET  /                  -> index
+The intents (their POST paths, packages and canonical names) come from `telegraphintent/registry.py`,
+the single source of truth; `miner.yaml` is generated from the same list (scripts/sync_intents.py).
 
-Each intent package is untouched and keeps its own guarantees (always HTTP 200, exactly the
-intent's response fields, its own exception handler). This module only routes a request to the
-right package's own FastAPI app by path and runs all the lifespans together, so nothing about
-an intent's behaviour changes by being hosted alongside the others.
+    POST <path>      -> the intent's own FastAPI app (package `app.create_app`)
+    GET  /healthz    -> aggregate health of every intent
+    GET  /miner.yaml -> the single registration file, byte-exact
+    GET  /           -> index
+
+Each intent package keeps its own guarantees (always HTTP 200, exactly the intent's response fields,
+its own exception handler). This module only routes a request to the right package's own FastAPI app by
+path and runs all the lifespans together, so nothing about an intent's behaviour changes by being
+hosted alongside the others.
 
 Per-intent configuration
 ------------------------
 The packages read overlapping environment variable names (ANTHROPIC_MODEL, CACHE_TTL_S,
 GLOBAL_TIMEOUT_S, LOG_LEVEL, ...). Shared names apply to every intent. To give one intent a
-different value, prefix the name: FRAUDRISK_, FACTCHECK_, AUDIT_, IPGEO_, EMAILSEC_, URLSAFE_ or
-MALWARE_ (for example MALWARE_GLOBAL_TIMEOUT_S). A prefixed variable wins over the shared one for
-that intent only. The four network-check intents need no API key.
+different value, prefix the name with the upper-case package name (FRAUDRISK_, FACTCHECK_, AUDIT_,
+IPGEO_, EMAILSEC_, URLSAFE_, MALWARE_, SANCTIONS_, ...; for example MALWARE_GLOBAL_TIMEOUT_S). A
+prefixed variable wins over the shared one for that intent only. Only fraudrisk, factcheck and audit use
+an API key; every other intent is keyless.
 """
 from __future__ import annotations
 
+import asyncio
 import contextlib
+import importlib
 import json
 import logging
 import os
 from pathlib import Path
 from typing import Callable, Iterator
 
+from .registry import INTENTS as REGISTRY, IntentSpec
+
 log = logging.getLogger("telegraphintent.app")
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 YAML_PATH = Path(__file__).resolve().parent.parent / "miner.yaml"
 
 
@@ -55,64 +57,18 @@ def scoped_env(prefix: str) -> Iterator[None]:
                 os.environ[k] = old
 
 
-def _build_fraudrisk():
-    from fraudrisk.app import create_app
-    from fraudrisk.config import Settings
-    with scoped_env("FRAUDRISK"):
-        return create_app(Settings.from_env())
+def _builder(spec: IntentSpec) -> Callable:
+    def build():
+        app_module = importlib.import_module(f"{spec.package}.app")
+        settings_cls = importlib.import_module(f"{spec.package}.config").Settings
+        with scoped_env(spec.prefix):
+            return app_module.create_app(settings_cls.from_env())
+    return build
 
 
-def _build_factcheck():
-    from factcheck.app import create_app
-    from factcheck.config import Settings
-    with scoped_env("FACTCHECK"):
-        return create_app(Settings.from_env())
-
-
-def _build_audit():
-    from audit.app import create_app
-    from audit.config import Settings
-    with scoped_env("AUDIT"):
-        return create_app(Settings.from_env())
-
-
-def _build_ipgeo():
-    from ipgeo.app import create_app
-    from ipgeo.config import Settings
-    with scoped_env("IPGEO"):
-        return create_app(Settings.from_env())
-
-
-def _build_emailsec():
-    from emailsec.app import create_app
-    from emailsec.config import Settings
-    with scoped_env("EMAILSEC"):
-        return create_app(Settings.from_env())
-
-
-def _build_urlsafe():
-    from urlsafe.app import create_app
-    from urlsafe.config import Settings
-    with scoped_env("URLSAFE"):
-        return create_app(Settings.from_env())
-
-
-def _build_malware():
-    from malware.app import create_app
-    from malware.config import Settings
-    with scoped_env("MALWARE"):
-        return create_app(Settings.from_env())
-
-
-#: (name, intent, POST path, builder). The POST path must match miner.yaml's endpoint path.
+#: (name, intent, POST path, builder), in registry order. The POST path matches miner.yaml's endpoint path.
 INTENTS: list[tuple[str, str, str, Callable]] = [
-    ("fraudrisk", "FRAUD_RISK_GENERAL", "/fraud-risk", _build_fraudrisk),
-    ("factcheck", "FACT_CHECK_GENERAL", "/fact-check", _build_factcheck),
-    ("audit", "CONTRACT_OBLIGATION_AUDIT_GENERAL", "/audit", _build_audit),
-    ("ipgeo", "IP_GEOLOCATION_GENERAL", "/ip-geolocation", _build_ipgeo),
-    ("emailsec", "EMAIL_SECURITY_GENERAL", "/email-security", _build_emailsec),
-    ("urlsafe", "URL_SAFE_GENERAL", "/url-safe", _build_urlsafe),
-    ("malware", "MALWARE_DETECTION_HASH", "/malware-detection", _build_malware),
+    (spec.name, spec.intent, spec.path, _builder(spec)) for spec in REGISTRY
 ]
 
 
@@ -138,8 +94,9 @@ class TelegraphIntentApp:
         stack = contextlib.AsyncExitStack()
         try:
             await receive()  # lifespan.startup
-            for app in self.apps.values():
-                await stack.enter_async_context(app.router.lifespan_context(app))
+            # Concurrent: several intents download a list or feed while starting, and those waits must overlap.
+            await asyncio.gather(*(stack.enter_async_context(app.router.lifespan_context(app))
+                                   for app in self.apps.values()))
         except Exception as exc:  # noqa: BLE001
             log.exception("startup failed")
             await send({"type": "lifespan.startup.failed", "message": f"{type(exc).__name__}: {exc}"})

@@ -1,0 +1,51 @@
+{
+  "intent_id": "URL_SCAN_VERDICT",
+  "fetched_at": "2026-11-22T14:48:22Z",
+  "lifecycle_state": "active",
+  "class": "hybrid",
+  "evaluation": {
+    "kind": "hybrid",
+    "via": "adapter",
+    "comparator": {
+      "code": 3,
+      "tolerance_bps": 0,
+      "scale": 1,
+      "question_template": "Is the URL {key} safe to visit, with no phishing or malware?",
+      "question_keys": [
+        "https://www.google.com/",
+        "https://example.com/",
+        "http://malware.wicar.org/data/eicar.com"
+      ]
+    }
+  },
+  "request": {
+    "params": [
+      {
+        "name": "url",
+        "type": "string",
+        "required": true,
+        "description": "The URL"
+      }
+    ],
+    "schema_version": 4,
+    "served_by": "URL_SCAN"
+  },
+  "response": {
+    "fields": [
+      {
+        "name": "safe",
+        "description": "Whether the URL {key} is safe to visit",
+        "type": "bool",
+        "true_when": [
+          "true",
+          "yes",
+          "safe",
+          "clean"
+        ],
+        "scored": true
+      }
+    ],
+    "format_version": 1,
+    "served_by": "URL_SCAN_VERDICT"
+  }
+}

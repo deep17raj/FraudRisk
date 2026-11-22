@@ -1,0 +1,80 @@
+{
+  "intent_id": "SANCTIONS_SCREENING_MATCH_GENERAL",
+  "fetched_at": "2026-11-22T14:48:14Z",
+  "lifecycle_state": "active",
+  "class": "judgment",
+  "evaluation": {
+    "kind": "judgment",
+    "via": "adapter",
+    "comparator": null
+  },
+  "request": {
+    "params": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": true,
+        "description": "Person or entity name"
+      }
+    ],
+    "schema_version": 3,
+    "served_by": "SANCTIONS_SCREENING_MATCH"
+  },
+  "response": {
+    "fields": [
+      {
+        "name": "name",
+        "description": "The person or entity screened",
+        "type": "string",
+        "off_chain": true
+      },
+      {
+        "name": "matched",
+        "description": "Whether the name matched a sanctions-list entry",
+        "type": "bool",
+        "true_when": [
+          "true",
+          "yes",
+          "match",
+          "matched",
+          "1"
+        ],
+        "false_when": [
+          "false",
+          "no",
+          "0",
+          "no match",
+          "not matched",
+          "clear"
+        ],
+        "scored": true
+      },
+      {
+        "name": "matches",
+        "description": "Matching sanctions-list entries",
+        "type": "list",
+        "off_chain": true
+      },
+      {
+        "name": "lists",
+        "description": "Sanctions lists checked or matched (e.g. OFAC SDN)",
+        "type": "list",
+        "off_chain": true
+      },
+      {
+        "name": "match_score",
+        "description": "Best fuzzy-match score, 0 to 1",
+        "type": "number",
+        "unit": "fraction (0-1)",
+        "range": [
+          0,
+          1
+        ],
+        "decimals": 6,
+        "off_chain": true
+      }
+    ],
+    "format_version": 3,
+    "served_by": "SANCTIONS_SCREENING_MATCH"
+  }
+}

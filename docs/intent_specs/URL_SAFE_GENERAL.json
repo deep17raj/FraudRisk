@@ -1,0 +1,65 @@
+{
+  "intent_id": "URL_SAFE_GENERAL",
+  "fetched_at": "2026-11-22T14:48:13Z",
+  "lifecycle_state": "active",
+  "class": "judgment",
+  "evaluation": {
+    "kind": "judgment",
+    "via": "generic",
+    "comparator": null
+  },
+  "request": {
+    "params": [
+      {
+        "name": "url",
+        "type": "string",
+        "required": true,
+        "description": "The URL"
+      }
+    ],
+    "schema_version": 4,
+    "served_by": "URL_SAFE"
+  },
+  "response": {
+    "fields": [
+      {
+        "name": "url",
+        "description": "The URL checked",
+        "type": "string",
+        "off_chain": true
+      },
+      {
+        "name": "verdict",
+        "description": "Safety verdict",
+        "type": "enum",
+        "allowed": [
+          "Safe",
+          "Suspicious",
+          "Malicious",
+          "Unknown"
+        ],
+        "processed": true
+      },
+      {
+        "name": "detections",
+        "description": "Number of engines or databases flagging the URL",
+        "type": "number",
+        "unit": "detections",
+        "range": [
+          0,
+          1000
+        ],
+        "scored": true,
+        "decimals": 0
+      },
+      {
+        "name": "summary",
+        "description": "One- or two-sentence summary of the check",
+        "type": "string",
+        "off_chain": true
+      }
+    ],
+    "format_version": 4,
+    "served_by": "URL_SAFE"
+  }
+}

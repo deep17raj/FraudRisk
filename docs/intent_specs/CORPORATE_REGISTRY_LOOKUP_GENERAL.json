@@ -1,0 +1,90 @@
+{
+  "intent_id": "CORPORATE_REGISTRY_LOOKUP_GENERAL",
+  "fetched_at": "2026-11-22T14:48:17Z",
+  "lifecycle_state": "active",
+  "class": "judgment",
+  "evaluation": {
+    "kind": "judgment",
+    "via": "generic",
+    "comparator": null
+  },
+  "request": {
+    "params": [
+      {
+        "name": "company",
+        "type": "string",
+        "required": true,
+        "description": "Company name or registry identifier"
+      },
+      {
+        "name": "jurisdiction",
+        "type": "string",
+        "required": true,
+        "description": "Country or jurisdiction of registration"
+      }
+    ],
+    "schema_version": 3,
+    "served_by": "CORPORATE_REGISTRY_LOOKUP"
+  },
+  "response": {
+    "fields": [
+      {
+        "name": "legal_name",
+        "description": "Registered legal name",
+        "type": "string",
+        "off_chain": true
+      },
+      {
+        "name": "registration_id",
+        "description": "Registry identifier (LEI, company number, org number)",
+        "type": "string",
+        "off_chain": true
+      },
+      {
+        "name": "active",
+        "description": "Whether the company is active / in good standing",
+        "type": "bool",
+        "true_when": [
+          "true",
+          "yes",
+          "active",
+          "1"
+        ],
+        "false_when": [
+          "false",
+          "no",
+          "0",
+          "inactive",
+          "dissolved",
+          "struck off",
+          "closed"
+        ],
+        "scored": true,
+        "aliases": [
+          "registered",
+          "registration status"
+        ]
+      },
+      {
+        "name": "jurisdiction",
+        "description": "Jurisdiction of registration",
+        "type": "string",
+        "off_chain": true
+      },
+      {
+        "name": "registered_address",
+        "description": "Registered address",
+        "type": "string",
+        "off_chain": true
+      },
+      {
+        "name": "incorporated",
+        "description": "Date of incorporation or registration",
+        "type": "date",
+        "off_chain": true
+      }
+    ],
+    "format_version": 3,
+    "served_by": "CORPORATE_REGISTRY_LOOKUP"
+  }
+}

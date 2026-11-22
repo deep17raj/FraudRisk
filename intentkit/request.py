@@ -14,11 +14,14 @@ from fastapi import Request
 GENERIC_ALIASES: tuple[str, ...] = ("query", "input", "text", "question", "q")
 
 
-async def read_fields(request: Request, fields: Mapping[str, Sequence[str]], *, max_len: int = 2000) -> dict[str, str]:
+async def read_fields(request: Request, fields: Mapping[str, Sequence[str]], *, max_len: int = 2000,
+                      accept_numbers: bool = False) -> dict[str, str]:
     """Return each wanted field as a stripped string ('' when absent or not a string).
 
     The JSON body is consulted first, then the query string. A field may arrive under any of its
-    aliases; the documented name always wins.
+    aliases; the documented name always wins. With `accept_numbers` a JSON number is read as its text,
+    for intents that declare integer or number params (an amount, a window in hours). It is off by
+    default so the original intents behave exactly as they always have.
     """
     try:
         body = await request.json()
@@ -31,6 +34,8 @@ async def read_fields(request: Request, fields: Mapping[str, Sequence[str]], *, 
         if isinstance(body, dict):
             for key in keys:
                 cand = body.get(key)
+                if accept_numbers and isinstance(cand, (int, float)) and not isinstance(cand, bool):
+                    cand = repr(cand) if isinstance(cand, float) else str(cand)
                 if isinstance(cand, str) and cand.strip():
                     value = cand.strip()
                     break

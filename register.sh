@@ -22,7 +22,9 @@ YAML_FILE="${YAML_FILE:-miner.yaml}"
 MIN_PRICE="${MIN_PRICE:-10000}"
 BOND_APPROVE="${BOND_APPROVE:-10000000000000000000}"
 NODE="${NODE:-https://devnode.telegraphprotocol.com}"
-INTENTS='["FRAUD_RISK_GENERAL","FACT_CHECK_GENERAL","CONTRACT_OBLIGATION_AUDIT_GENERAL","IP_GEOLOCATION_GENERAL","EMAIL_SECURITY_GENERAL","URL_SAFE_GENERAL","MALWARE_DETECTION_HASH"]'
+# BEGIN GENERATED: intents (python scripts/sync_intents.py; do not edit)
+INTENTS='["FRAUD_RISK_GENERAL","FACT_CHECK_GENERAL","CONTRACT_OBLIGATION_AUDIT_GENERAL","IP_GEOLOCATION_GENERAL","EMAIL_SECURITY_GENERAL","URL_SAFE_GENERAL","MALWARE_DETECTION_HASH","SANCTIONS_SCREENING_MATCH_GENERAL","CRYPTO_PRICE_USD","REGULATORY_FILING_MONITOR_GENERAL","CORPORATE_REGISTRY_LOOKUP_GENERAL","SSL_VERIFICATION_CERT","CVE_LOOKUP_CVSS","VULNERABILITY_TRIAGE_GENERAL","WEATHER_CHECK_TEMPERATURE","WEATHER_FORECAST_GENERAL","GAS_PRICE_GENERAL","URL_SCAN_VERDICT","THREAT_INTELLIGENCE_INDICATOR","CURRENCY_EXCHANGE_CONVERT","FX_NOW_CAD","FX_NOW_EUR","FX_NOW_SEK","DNS_RECORD_LOOKUP_GENERAL","TVL_LOOKUP_GENERAL"]'
+# END GENERATED: intents
 
 die() { echo "ERROR: $*" >&2; exit 1; }
 
@@ -63,6 +65,7 @@ probe() {  # probe <path> <json body> <field regex> <field regex> ...
   done
   echo "   $path OK"
 }
+# BEGIN GENERATED: probes (python scripts/sync_intents.py; do not edit)
 probe /fraud-risk '{"subject":"registration smoke test: a first transfer to a new payee"}' risk_level risk_score signals summary
 probe /fact-check '{"claim":"The Eiffel Tower is in Paris."}' claim verdict reasoning sources
 probe /audit '{"contract":"1.1 The Supplier shall deliver the Goods by 1 March 2026. 1.2 The Buyer shall pay GBP 10,000 within thirty (30) days of invoice."}' verdict obligations clauses summary
@@ -70,6 +73,25 @@ probe /ip-geolocation '{"ip":"8.8.8.8"}' ip country city latitude longitude isp
 probe /email-security '{"domain":"example.com","record_type":"MX"}' lookup_ok
 probe /url-safe '{"url":"https://www.example.com/"}' url verdict detections summary
 probe /malware-detection '{"indicator":"275a021bbfb6489e54d471899f7db9d1663fc695ec2fe2a2c4538aabf651fd0f"}' malicious
+probe /sanctions-screening '{"name":"Banco Nacional de Cuba"}' name matched matches lists match_score
+probe /crypto-price '{"symbol":"BTC"}' price_usd
+probe /regulatory-filings '{"entity":"Apple Inc","period":"last 12 months"}' entity filing_count filings urls
+probe /corporate-registry '{"company":"Apple Inc","jurisdiction":"United States"}' legal_name registration_id active jurisdiction registered_address incorporated
+probe /ssl-verification '{"host":"example.com"}' certificate_valid
+probe /cve-lookup '{"cve_id":"CVE-2021-44228"}' cve_id cvss_score severity description published references
+probe /vulnerability-triage '{"cve_id":"CVE-2021-44228"}' cvss_base_score
+probe /weather-temperature '{"location":"London"}' temperature_c
+probe /weather-forecast '{"location":"London","window_hours":24}' location when temp_max_c temp_min_c precipitation_probability_pct condition
+probe /gas-price '{"chain":"ethereum"}' chain gas_price_gwei transfer_fee_usd as_of
+probe /url-scan '{"url":"https://www.example.com/"}' safe
+probe /threat-intelligence '{"indicator":"185.220.101.4"}' malicious
+probe /currency-convert '{"from_currency":"USD","to_currency":"EUR","amount":100}' converted_amount
+probe /fx-now-cad '{"currency":"CAD"}' rate
+probe /fx-now-eur '{"currency":"EUR"}' rate
+probe /fx-now-sek '{"currency":"SEK"}' rate
+probe /dns-record '{"name":"example.com","record_type":"MX"}' has_record
+probe /tvl-lookup '{"protocol":"aave"}' protocol_or_chain tvl_usd chain_tvl_usd as_of
+# END GENERATED: probes
 
 echo "-> checking id/slug are unused on $NODE ..."
 if LIST="$(curl -fsS --max-time 120 "$NODE/api/miners")"; then
@@ -81,8 +103,7 @@ else
   echo "   The dry run below still reverts if the id or slug is taken, so this is not fatal."
 fi
 
-for INTENT in FRAUD_RISK_GENERAL FACT_CHECK_GENERAL CONTRACT_OBLIGATION_AUDIT_GENERAL \
-              IP_GEOLOCATION_GENERAL EMAIL_SECURITY_GENERAL URL_SAFE_GENERAL MALWARE_DETECTION_HASH; do
+for INTENT in $(tr -d '[]"' <<<"$INTENTS" | tr ',' ' '); do
   echo "-> checking $INTENT is a canonical intent ..."
   [ "$(cast call "$DIAMOND" "isCanonicalIntent(string)(bool)" "$INTENT" --rpc-url "$RPC")" = "true" ]     || die "$INTENT is not canonical on this Diamond (wrong DIAMOND/RPC?)"
 done

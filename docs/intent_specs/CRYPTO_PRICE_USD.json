@@ -1,0 +1,52 @@
+{
+  "intent_id": "CRYPTO_PRICE_USD",
+  "fetched_at": "2026-11-22T14:48:15Z",
+  "lifecycle_state": "active",
+  "class": "deterministic",
+  "evaluation": {
+    "kind": "deterministic",
+    "via": "comparator",
+    "comparator": {
+      "code": 2,
+      "tolerance_bps": 100,
+      "scale": 10000,
+      "question_template": "What is the current price of {key} in US dollars?",
+      "question_keys": [
+        "BTC",
+        "ETH",
+        "SOL",
+        "BNB",
+        "XRP"
+      ]
+    }
+  },
+  "request": {
+    "params": [
+      {
+        "name": "symbol",
+        "type": "string",
+        "required": true,
+        "description": "Asset symbol, e.g. BTC"
+      }
+    ],
+    "schema_version": 3,
+    "served_by": "CRYPTO_PRICE"
+  },
+  "response": {
+    "fields": [
+      {
+        "name": "price_usd",
+        "description": "Current price of {key}, in US dollars",
+        "type": "number",
+        "unit": "US dollars",
+        "range": [
+          1e-06,
+          10000000
+        ],
+        "scored": true
+      }
+    ],
+    "format_version": 1,
+    "served_by": "CRYPTO_PRICE_USD"
+  }
+}

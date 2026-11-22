@@ -1,0 +1,65 @@
+{
+  "intent_id": "FRAUD_RISK_GENERAL",
+  "fetched_at": "2026-11-22T14:48:09Z",
+  "lifecycle_state": "active",
+  "class": "judgment",
+  "evaluation": {
+    "kind": "judgment",
+    "via": "generic",
+    "comparator": null
+  },
+  "request": {
+    "params": [
+      {
+        "name": "subject",
+        "type": "string",
+        "required": true,
+        "description": "Entity, payment or account to assess"
+      }
+    ],
+    "schema_version": 3,
+    "served_by": "FRAUD_RISK"
+  },
+  "response": {
+    "fields": [
+      {
+        "name": "risk_level",
+        "description": "Fraud risk grade",
+        "type": "enum",
+        "allowed": [
+          "LOW",
+          "MEDIUM",
+          "HIGH",
+          "CRITICAL"
+        ],
+        "processed": true
+      },
+      {
+        "name": "risk_score",
+        "description": "Fraud risk score from 0 to 1",
+        "type": "number",
+        "unit": "fraction (0-1)",
+        "range": [
+          0,
+          1
+        ],
+        "decimals": 6,
+        "off_chain": true
+      },
+      {
+        "name": "signals",
+        "description": "Risk signals behind the assessment",
+        "type": "list",
+        "off_chain": true
+      },
+      {
+        "name": "summary",
+        "description": "One- or two-sentence summary of the assessment",
+        "type": "string",
+        "off_chain": true
+      }
+    ],
+    "format_version": 3,
+    "served_by": "FRAUD_RISK"
+  }
+}
