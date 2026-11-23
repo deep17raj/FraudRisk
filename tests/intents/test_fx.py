@@ -24,8 +24,22 @@ async def rate(fake, code, request_currency=None):
 
 
 async def test_the_ecb_rate_is_preferred_where_both_sources_publish_a_currency():
-    assert await rate(http(), "CAD") == 1.4
-    assert await rate(http(), "EUR") == 0.9
+    assert await rate(http(), "SEK") == 10.0
+    assert await rate(http(), "GBP") == 0.76
+
+
+async def test_eur_and_cad_use_open_er_api_when_it_publishes_them():
+    assert await rate(http(), "CAD") == 1.41
+    assert await rate(http(), "EUR") == 0.95
+
+
+async def test_eur_and_cad_fall_back_to_the_ecb_when_open_er_api_is_down():
+    assert await rate(http(er=None), "CAD") == 1.4
+    assert await rate(http(er=None), "EUR") == 0.9
+
+
+async def test_conversion_keeps_using_the_ecb_table():
+    assert await convert(http(), from_currency="USD", to_currency="EUR") == pytest.approx(0.9)
 
 
 async def test_the_second_source_fills_currencies_the_ecb_does_not_publish():
@@ -35,6 +49,7 @@ async def test_the_second_source_fills_currencies_the_ecb_does_not_publish():
 async def test_either_source_alone_is_enough():
     assert await rate(http(ecb=None), "EUR") == 0.95
     assert await rate(http(er=None), "EUR") == 0.9
+    assert await rate(http(er=None), "SEK") == 10.0
 
 
 async def test_no_source_or_an_unknown_currency_is_null():
@@ -49,6 +64,7 @@ async def test_a_request_naming_no_currency_defaults_to_the_intents_own():
 async def test_the_pair_form_and_currency_names_are_understood():
     assert await rate(http(), "CAD", request_currency="USD/JPY") == 158.0
     assert await rate(http(), "CAD", request_currency="Swedish krona") == 10.0
+    assert await rate(http(), "SEK", request_currency="USD/CAD") == 1.41
 
 
 async def convert(fake, **req):

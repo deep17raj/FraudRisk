@@ -17,6 +17,7 @@ from intentkit.upstream import Upstream
 
 FRANKFURTER = "https://api.frankfurter.dev/v1/latest"
 ER_API = "https://open.er-api.com/v6/latest/USD"
+ER_NAME, ECB_NAME = "open.er-api.com", "ECB via Frankfurter"
 
 #: Words callers use instead of an ISO code. Used only to understand the question.
 NAMES = {
@@ -66,6 +67,7 @@ class RateTables:
         self.up, self.ttl = up, ttl
         self._table: dict[str, float] = {}
         self._sources: dict[str, str] = {}
+        self._by_source: dict[str, dict[str, float]] = {}
         self._at = 0.0
         self._lock = asyncio.Lock()
 
@@ -79,17 +81,24 @@ class RateTables:
                 self.up.get_json(FRANKFURTER, params={"base": "USD"}), self.up.get_json(ER_API))
             rates: dict[str, float] = {"USD": 1.0}
             src: dict[str, str] = {"USD": "base"}
-            for blob, name in ((other.get("rates") if isinstance(other, dict) else None, "open.er-api.com"),
-                               (ecb.get("rates") if isinstance(ecb, dict) else None, "ECB via Frankfurter")):
+            by_source: dict[str, dict[str, float]] = {}
+            for blob, name in ((other.get("rates") if isinstance(other, dict) else None, ER_NAME),
+                               (ecb.get("rates") if isinstance(ecb, dict) else None, ECB_NAME)):
                 if isinstance(blob, dict):         # ECB last, so it wins where both publish a currency
+                    own = by_source.setdefault(name, {})
                     for code, v in blob.items():
                         if isinstance(v, (int, float)) and not isinstance(v, bool) and v > 0:
-                            rates[str(code).upper()] = float(v)
+                            rates[str(code).upper()] = own[str(code).upper()] = float(v)
                             src[str(code).upper()] = name
             if len(rates) > 1:
-                self._table, self._sources, self._at = rates, src, time.monotonic()
+                self._table, self._sources, self._by_source, self._at = rates, src, by_source, time.monotonic()
             return rates, src
 
-    async def per_usd(self, code: str) -> Optional[float]:
+    async def per_usd(self, code: str, prefer: Optional[str] = None) -> Optional[float]:
+        """Units of `code` per dollar. `prefer` names a source to use when it publishes the currency."""
         rates, _ = await self.table()
+        if prefer is not None:
+            own = self._by_source.get(prefer, {}).get(code.upper())
+            if own is not None:
+                return own
         return rates.get(code.upper())

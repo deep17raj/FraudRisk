@@ -143,6 +143,18 @@ async def test_record_types_map_to_their_wire_codes(rtype, code):
                             "other.example.com", rtype) is False
 
 
+async def test_a_ptr_question_about_an_address_queries_its_reverse_name():
+    fake = FakeHttp({GOOGLE: doh(0, [(12, "dns.google.")]), CLOUDFLARE: doh(0, [(12, "dns.google.")])})
+    assert await has_record(fake, "8.8.8.8", "PTR") is True
+    assert {r.url.params["name"] for r in fake.calls} == {"8.8.8.8.in-addr.arpa"}
+    fake6 = FakeHttp({GOOGLE: doh(0, [(12, "x.")]), CLOUDFLARE: doh(0, [(12, "x.")])})
+    assert await has_record(fake6, "2001:4860:4860::8888", "PTR") is True
+    assert all(r.url.params["name"].endswith(".ip6.arpa") for r in fake6.calls)
+    plain = FakeHttp({GOOGLE: doh(0, [(1, "8.8.8.8")]), CLOUDFLARE: doh(0, [(1, "8.8.8.8")])})
+    await has_record(plain, "8.8.8.8", "A")
+    assert {r.url.params["name"] for r in plain.calls} == {"8.8.8.8"}
+
+
 async def test_nxdomain_and_servfail_are_false():
     for status in (3, 2):
         assert await has_record(FakeHttp({GOOGLE: doh(status), CLOUDFLARE: doh(status)})) is False

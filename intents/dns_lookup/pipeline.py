@@ -8,6 +8,7 @@ only if Google could not be asked.
 from __future__ import annotations
 
 import asyncio
+import ipaddress
 from typing import Optional
 
 from pydantic import BaseModel
@@ -38,8 +39,14 @@ class DnsPipeline(BasePipeline):
         self.doh = doh or DohClient(client, timeout=settings.provider_timeout)
 
     def _parse(self, req: Req) -> Optional[tuple[str, str]]:
-        name = normalize_domain(req.get("name", ""))
+        raw = req.get("name", "")
         rtype = normalize_record_type(req.get("record_type", "") or "A")
+        if rtype == "PTR":
+            try:    # a PTR question about an address is a reverse lookup of its .arpa name
+                return ipaddress.ip_address(raw.strip().strip("[]")).reverse_pointer, rtype
+            except ValueError:
+                pass
+        name = normalize_domain(raw)
         return (name, rtype) if name and rtype else None
 
     def key(self, req: Req) -> Optional[str]:
