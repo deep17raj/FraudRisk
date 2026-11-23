@@ -1,0 +1,52 @@
+{
+  "intent_id": "CHAT_COMPLETION_GENERAL",
+  "fetched_at": "2026-11-22T20:34:40Z",
+  "lifecycle_state": "active",
+  "class": "judgment",
+  "evaluation": {
+    "kind": "judgment",
+    "via": "generic",
+    "comparator": null
+  },
+  "request": {
+    "params": [
+      {
+        "name": "message",
+        "type": "string",
+        "required": true,
+        "description": "The message or question"
+      }
+    ],
+    "schema_version": 3,
+    "served_by": "CHAT_COMPLETION"
+  },
+  "response": {
+    "fields": [
+      {
+        "name": "reply",
+        "description": "The assistant's reply to the message",
+        "type": "string",
+        "off_chain": true
+      },
+      {
+        "name": "verdict",
+        "description": "For a 'will X happen' question, the verdict word the reply leads with",
+        "type": "enum",
+        "allowed": [
+          "Likely",
+          "Unlikely",
+          "Uncertain"
+        ],
+        "off_chain": true
+      },
+      {
+        "name": "brief",
+        "description": "The answer to the request in one plain sentence of at most 80 characters",
+        "type": "string",
+        "processed": true
+      }
+    ],
+    "format_version": 3,
+    "served_by": "CHAT_COMPLETION"
+  }
+}

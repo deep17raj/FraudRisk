@@ -118,7 +118,7 @@ def test_enum_fields_only_allow_the_specs_values(spec):
 def test_every_response_field_has_an_honest_default(spec):
     empty = model_of(spec)()                  # raises if any field is required
     for name, value in empty.model_dump().items():
-        assert value in (None, "", [], False), f"rule D9: {name} defaults to {value!r}, not an honest empty value"
+        assert value in (None, "", [], False, "unresolved"), f"rule D9: {name} defaults to {value!r}, not an honest empty value"
 
 
 @each(NEW)
@@ -154,10 +154,18 @@ def test_request_field_aliases_never_shadow_a_documented_param(spec):
 
 
 # ---- D. honesty and fair play -----------------------------------------------------------------------------
-def test_new_intents_use_no_llm_and_no_api_key():
-    banned = re.compile(r"\b(anthropic|openai|ANTHROPIC_API_KEY|OPENAI_API_KEY|groq|cohere)\b", re.I)
+def test_language_models_are_limited_to_groq_through_the_shared_client():
+    """Rule D11: Groq only, only via intentkit.groq; no other provider, no raw call to Groq from an intent."""
+    banned = re.compile(r"(anthropic|openai|cohere|mistral|ANTHROPIC_API_KEY|OPENAI_API_KEY)", re.I)
+    # code that calls the API or reads the key itself (a docstring that merely names the variable is fine)
+    raw_groq = re.compile(r"""api\.groq\.com|chat/completions|(?:environ|getenv|env)\s*[(\[]\s*["']GROQ""")
     for path in (ROOT / "intents").rglob("*.py"):
-        assert not banned.search(path.read_text(encoding="utf-8")), f"rule D11: {path.relative_to(ROOT)} uses an LLM"
+        text = path.read_text(encoding="utf-8")
+        assert not banned.search(text), f"rule D11: {path.relative_to(ROOT)} uses a model provider other than Groq"
+        assert not raw_groq.search(text), f"rule D11: {path.relative_to(ROOT)} must call Groq through intentkit.groq"
+    for path in (ROOT / "intentkit").rglob("*.py"):
+        if path.name != "groq.py":
+            assert "api.groq.com" not in path.read_text(encoding="utf-8"), f"rule D11: {path.name} talks to Groq directly"
 
 
 def test_new_intents_do_not_hard_code_question_keys_as_answers():
@@ -207,6 +215,23 @@ def test_every_new_intent_has_unit_and_live_tests(spec):
     assert spec.intent in live, f"rule G20: no live test for {spec.intent} in tests/intents/test_live.py"
 
 
+LLM = [s for s in INTENTS if s.llm]
+
+
+@each(LLM)
+def test_an_llm_intent_extends_llm_settings_and_has_failure_mode_tests(spec):
+    from intentkit.groq import LlmSettings
+    assert issubclass(importlib.import_module(f"{spec.package}.config").Settings, LlmSettings),         f"rule D11: {spec.package}.config.Settings must extend intentkit.groq.LlmSettings"
+    tests = (ROOT / "tests" / "intents" / "test_llm_failure_modes.py").read_text(encoding="utf-8")
+    assert spec.package in tests, f"rule D11: tests/intents/test_llm_failure_modes.py must cover {spec.package} (no key, 401, 429, ...)"
+
+
+def test_only_registered_llm_intents_import_the_groq_client():
+    users = {p.parent.name for p in (ROOT / "intents").rglob("*.py")
+             if re.search(r"intentkit\.(groq|llm_pipeline)", p.read_text(encoding="utf-8"))}
+    assert users <= {s.name for s in LLM} | {"fx"}, f"rule D11: mark these llm=True in the registry: {users - {s.name for s in LLM}}"
+
+
 def test_the_docs_list_every_new_intent():
     doc = (ROOT / "docs" / "MoreIntents.md").read_text(encoding="utf-8")
     for s in NEW:
@@ -226,5 +251,6 @@ def test_rules_document_numbers_are_contiguous_and_referenced_rules_exist():
 
 def test_env_example_documents_the_new_settings():
     env = (ROOT / ".env.example").read_text(encoding="utf-8")
-    for needle in ("NVD_API_KEY", "SEC_USER_AGENT", "IPSUM_MIN_LISTS", "MATCH_THRESHOLD", "ALLOW_PRIVATE_HOSTS"):
+    for needle in ("NVD_API_KEY", "SEC_USER_AGENT", "IPSUM_MIN_LISTS", "MATCH_THRESHOLD", "ALLOW_PRIVATE_HOSTS",
+                   "GROQ_API_KEY", "GROQ_MODELS", "GROQ_TIMEOUT_S", "OPENALEX_API_KEY", "UPPTIME_REPOS"):
         assert needle in env, f"rule E17: document {needle} in .env.example"

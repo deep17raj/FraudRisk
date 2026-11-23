@@ -8,5 +8,5 @@ Those rules are binding, and `python -m pytest` enforces the mechanical ones (`t
 
 Short version: never change the miner's id, slug, name or base_url; build only intents that are
 `active` with a published request/response spec; return exactly the spec's fields as HTTP 200 every
-time; never fabricate or hard-code answers; keyless sources only; generate `miner.yaml` with
+time; never fabricate or hard-code answers; keyless sources by default (Groq is allowed only as an optional extra through `intentkit.groq`, and every such intent must answer without it); generate `miner.yaml` with
 `python scripts/sync_intents.py`; do not commit, push, deploy or call `updateMiner` unless the user asks.

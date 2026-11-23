@@ -1,6 +1,6 @@
 # TelegraphIntent
 
-One Telegraph miner, one service, one `miner.yaml`, 25 intents.
+One Telegraph miner, one service, one `miner.yaml`, 33 intents.
 
 **Adding or changing an intent? Read [docs/INTENT_RULES.md](docs/INTENT_RULES.md) first; `pytest` enforces it.**
 
@@ -13,7 +13,7 @@ One Telegraph miner, one service, one `miner.yaml`, 25 intents.
 | `EMAIL_SECURITY_GENERAL` | `POST /email-security` | `domain`, `record_type` | `emailsec/` | [docs/NetworkIntents.md](docs/NetworkIntents.md) |
 | `URL_SAFE_GENERAL` | `POST /url-safe` | `url` | `urlsafe/` | [docs/NetworkIntents.md](docs/NetworkIntents.md) |
 | `MALWARE_DETECTION_HASH` | `POST /malware-detection` | `indicator` | `malware/` | [docs/NetworkIntents.md](docs/NetworkIntents.md) |
-| 18 more (sanctions, crypto price, SEC filings, company registry, TLS certificates, CVEs, weather, gas, FX, DNS, TVL, URL and threat checks) | see the table | | `intents/<name>/` | [docs/MoreIntents.md](docs/MoreIntents.md) |
+| 26 more (web search, chat, research, security review, event outcome, sanctions, crypto price, SEC filings, company registry, TLS certificates, CVEs, weather, gas, FX, DNS, TVL, URL and threat checks) | see the table | | `intents/<name>/` | [docs/MoreIntents.md](docs/MoreIntents.md) |
 
 Also served: `GET /healthz` (every intent), `GET /miner.yaml` (byte-exact), `GET /`.
 

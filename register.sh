@@ -23,7 +23,7 @@ MIN_PRICE="${MIN_PRICE:-10000}"
 BOND_APPROVE="${BOND_APPROVE:-10000000000000000000}"
 NODE="${NODE:-https://devnode.telegraphprotocol.com}"
 # BEGIN GENERATED: intents (python scripts/sync_intents.py; do not edit)
-INTENTS='["FRAUD_RISK_GENERAL","FACT_CHECK_GENERAL","CONTRACT_OBLIGATION_AUDIT_GENERAL","IP_GEOLOCATION_GENERAL","EMAIL_SECURITY_GENERAL","URL_SAFE_GENERAL","MALWARE_DETECTION_HASH","SANCTIONS_SCREENING_MATCH_GENERAL","CRYPTO_PRICE_USD","REGULATORY_FILING_MONITOR_GENERAL","CORPORATE_REGISTRY_LOOKUP_GENERAL","SSL_VERIFICATION_CERT","CVE_LOOKUP_CVSS","VULNERABILITY_TRIAGE_GENERAL","WEATHER_CHECK_TEMPERATURE","WEATHER_FORECAST_GENERAL","GAS_PRICE_GENERAL","URL_SCAN_VERDICT","THREAT_INTELLIGENCE_INDICATOR","CURRENCY_EXCHANGE_CONVERT","FX_NOW_CAD","FX_NOW_EUR","FX_NOW_SEK","DNS_RECORD_LOOKUP_GENERAL","TVL_LOOKUP_GENERAL"]'
+INTENTS='["FRAUD_RISK_GENERAL","FACT_CHECK_GENERAL","CONTRACT_OBLIGATION_AUDIT_GENERAL","IP_GEOLOCATION_GENERAL","EMAIL_SECURITY_GENERAL","URL_SAFE_GENERAL","MALWARE_DETECTION_HASH","SANCTIONS_SCREENING_MATCH_GENERAL","CRYPTO_PRICE_USD","REGULATORY_FILING_MONITOR_GENERAL","CORPORATE_REGISTRY_LOOKUP_GENERAL","SSL_VERIFICATION_CERT","CVE_LOOKUP_CVSS","VULNERABILITY_TRIAGE_GENERAL","WEATHER_CHECK_TEMPERATURE","WEATHER_FORECAST_GENERAL","GAS_PRICE_GENERAL","URL_SCAN_VERDICT","THREAT_INTELLIGENCE_INDICATOR","CURRENCY_EXCHANGE_CONVERT","FX_NOW_CAD","FX_NOW_EUR","FX_NOW_SEK","DNS_RECORD_LOOKUP_GENERAL","TVL_LOOKUP_GENERAL","WEB_SEARCH_GENERAL","CHAT_COMPLETION_GENERAL","RESEARCH_QUERY_GENERAL","SECURITY_REVIEW_GENERAL","EVENT_OUTCOME_RESOLUTION_GENERAL","TOKEN_HOLDER_COUNT_GENERAL","SLA_COMPLIANCE_GENERAL","RETURN_POLICY_VERIFY_GENERAL"]'
 # END GENERATED: intents
 
 die() { echo "ERROR: $*" >&2; exit 1; }
@@ -91,6 +91,14 @@ probe /fx-now-eur '{"currency":"EUR"}' rate
 probe /fx-now-sek '{"currency":"SEK"}' rate
 probe /dns-record '{"name":"example.com","record_type":"MX"}' has_record
 probe /tvl-lookup '{"protocol":"aave"}' protocol_or_chain tvl_usd chain_tvl_usd as_of
+probe /web-search '{"query":"What is the latest news on the Fed interest rate decision?"}' answer sources brief
+probe /chat-completion '{"message":"Why is the sky blue?"}' reply verdict brief
+probe /research-query '{"question":"What does the evidence say about the health effects of intermittent fasting?"}' answer source_count sources brief
+probe /security-review '{"target":"lodash@4.17.15"}' verdict vulnerability_count issues summary
+probe /event-outcome '{"event":"Did the Fed cut rates in September 2025?"}' event outcome resolved_yes winner resolved_at sources
+probe /token-holders '{"token":"0xdAC17F958D2ee523a2206206994597C13D831ec7","chain":"ethereum"}' token chain holders_count token_symbol
+probe /sla-compliance '{"service":"Google","period":"last 30 days"}' service uptime_pct sla_target_pct compliant period
+probe /return-policy '{"retailer":"Adafruit"}' retailer return_window_days conditions verified sources
 # END GENERATED: probes
 
 echo "-> checking id/slug are unused on $NODE ..."

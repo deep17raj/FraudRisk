@@ -44,3 +44,9 @@ services:
       # --- contract audit
       - key: EXTRACTION_MODE
         value: auto
+      # --- optional: Groq writes/judges answers for web_search, chat_completion, research_query, security_review and
+      # --- event_outcome. Leave it unset and they answer from public sources. See docs/MoreIntents.md.
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODELS
+        value: llama-3.3-70b-versatile,llama-3.1-8b-instant

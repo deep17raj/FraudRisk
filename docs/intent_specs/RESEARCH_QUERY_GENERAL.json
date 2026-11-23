@@ -1,0 +1,57 @@
+{
+  "intent_id": "RESEARCH_QUERY_GENERAL",
+  "fetched_at": "2026-11-22T20:34:42Z",
+  "lifecycle_state": "active",
+  "class": "judgment",
+  "evaluation": {
+    "kind": "judgment",
+    "via": "generic",
+    "comparator": null
+  },
+  "request": {
+    "params": [
+      {
+        "name": "question",
+        "type": "string",
+        "required": true,
+        "description": "The research question"
+      }
+    ],
+    "schema_version": 3,
+    "served_by": "RESEARCH_QUERY"
+  },
+  "response": {
+    "fields": [
+      {
+        "name": "answer",
+        "description": "The one-paragraph research answer",
+        "type": "string",
+        "off_chain": true
+      },
+      {
+        "name": "source_count",
+        "description": "How many sources the answer drew on",
+        "type": "integer",
+        "range": [
+          0,
+          1000
+        ],
+        "off_chain": true
+      },
+      {
+        "name": "sources",
+        "description": "URLs or names of the sources the answer cites",
+        "type": "list",
+        "off_chain": true
+      },
+      {
+        "name": "brief",
+        "description": "The answer to the request in one plain sentence of at most 80 characters",
+        "type": "string",
+        "processed": true
+      }
+    ],
+    "format_version": 3,
+    "served_by": "RESEARCH_QUERY"
+  }
+}

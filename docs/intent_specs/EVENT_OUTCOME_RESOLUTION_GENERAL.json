@@ -1,0 +1,80 @@
+{
+  "intent_id": "EVENT_OUTCOME_RESOLUTION_GENERAL",
+  "fetched_at": "2026-11-22T20:34:44Z",
+  "lifecycle_state": "active",
+  "class": "judgment",
+  "evaluation": {
+    "kind": "judgment",
+    "via": "adapter",
+    "comparator": null
+  },
+  "request": {
+    "params": [
+      {
+        "name": "event",
+        "type": "string",
+        "required": true,
+        "description": "The event or question to resolve"
+      }
+    ],
+    "schema_version": 4,
+    "served_by": "EVENT_OUTCOME_RESOLUTION"
+  },
+  "response": {
+    "fields": [
+      {
+        "name": "event",
+        "description": "The event or question being resolved",
+        "type": "string",
+        "off_chain": true
+      },
+      {
+        "name": "outcome",
+        "description": "Resolved outcome",
+        "type": "enum",
+        "allowed": [
+          "yes",
+          "no",
+          "unresolved"
+        ],
+        "processed": true
+      },
+      {
+        "name": "resolved_yes",
+        "description": "Whether the event resolved YES (happened / passed / won)",
+        "type": "bool",
+        "true_when": [
+          "true",
+          "yes",
+          "1"
+        ],
+        "false_when": [
+          "false",
+          "no",
+          "0"
+        ],
+        "scored": true
+      },
+      {
+        "name": "winner",
+        "description": "The winner's name, when the event has one",
+        "type": "string",
+        "off_chain": true
+      },
+      {
+        "name": "resolved_at",
+        "description": "Date or time the outcome was settled",
+        "type": "string",
+        "off_chain": true
+      },
+      {
+        "name": "sources",
+        "description": "URLs or names of the sources the answer cites",
+        "type": "list",
+        "off_chain": true
+      }
+    ],
+    "format_version": 4,
+    "served_by": "EVENT_OUTCOME_RESOLUTION"
+  }
+}

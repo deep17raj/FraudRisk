@@ -1,0 +1,64 @@
+{
+  "intent_id": "SECURITY_REVIEW_GENERAL",
+  "fetched_at": "2026-11-22T20:34:43Z",
+  "lifecycle_state": "active",
+  "class": "judgment",
+  "evaluation": {
+    "kind": "judgment",
+    "via": "adapter",
+    "comparator": null
+  },
+  "request": {
+    "params": [
+      {
+        "name": "target",
+        "type": "string",
+        "required": true,
+        "description": "Code, package, contract or site to review"
+      }
+    ],
+    "schema_version": 3,
+    "served_by": "SECURITY_REVIEW"
+  },
+  "response": {
+    "fields": [
+      {
+        "name": "verdict",
+        "description": "Security verdict",
+        "type": "enum",
+        "allowed": [
+          "Secure",
+          "Needs changes",
+          "Insecure"
+        ],
+        "processed": true
+      },
+      {
+        "name": "vulnerability_count",
+        "description": "Number of known vulnerabilities or weaknesses found",
+        "type": "number",
+        "unit": "vulnerabilities",
+        "range": [
+          0,
+          100000
+        ],
+        "scored": true,
+        "decimals": 0
+      },
+      {
+        "name": "issues",
+        "description": "Vulnerability ids or weakness categories (CVE, GHSA, CWE, OWASP), most serious first",
+        "type": "list",
+        "off_chain": true
+      },
+      {
+        "name": "summary",
+        "description": "One- or two-sentence summary of the review",
+        "type": "string",
+        "off_chain": true
+      }
+    ],
+    "format_version": 3,
+    "served_by": "SECURITY_REVIEW"
+  }
+}

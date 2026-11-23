@@ -31,7 +31,10 @@ class BaseSettings:
     cache_ttl: int = env("CACHE_TTL_S", 60)
     cache_ttl_degraded: int = env("CACHE_TTL_DEGRADED_S", 10)  # answers built on missing sources
     cache_max_items: int = env("CACHE_MAX_ITEMS", 5000)
-    user_agent: str = env("HTTP_USER_AGENT", "TelegraphIntentMiner/0.1 (hackathon project; automated client)")
+    # Wikimedia (and the SEC) reject a User-Agent that carries no contact URL, so one is included; it points at the
+    # hackathon site and names no person. Override with HTTP_USER_AGENT.
+    user_agent: str = env("HTTP_USER_AGENT", "TelegraphIntentMiner/0.1 (hackathon project; automated client; "
+                                             "+https://hackathon.telegraphprotocol.com)")
     log_level: str = env("LOG_LEVEL", "INFO")
 
     @classmethod

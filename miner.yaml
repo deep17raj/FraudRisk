@@ -4,7 +4,7 @@ id: 83159274
 slug: telegraph-intent-miner
 protocol: generic
 name: TelegraphIntent
-description: One miner serving 25 Telegraph intents. FRAUD_RISK_GENERAL fuses IP reputation, Tor/VPN exposure, domain and phishing-feed reputation, card-BIN metadata and behavioural pattern rules into a graded risk level and abstains honestly when evidence is insufficient. FACT_CHECK_GENERAL checks a specific factual claim against multiple independent sources and returns a verdict with cited sources, abstaining when evidence is insufficient. CONTRACT_OBLIGATION_AUDIT_GENERAL extracts a contract's obligations, judges compliance and cites only clause wording verified to occur verbatim in the supplied contract (accepts the text or a link to an HTML or PDF). IP_GEOLOCATION_GENERAL locates an IP address by consensus of several keyless geolocation providers. EMAIL_SECURITY_GENERAL reports whether a DNS lookup of a given record type for a mail domain succeeds (DNS status NOERROR). URL_SAFE_GENERAL checks a URL against OpenPhish's live phishing feed and Cloudflare's malware and phishing DNS filter, counting the sources that flag it. MALWARE_DETECTION_HASH reports whether a file hash (MD5, SHA-1 or SHA-256), domain or IP address is flagged as malicious by CIRCL hashlookup, Team Cymru's malware hash registry, AlienVault OTX, OpenPhish and Cloudflare's security DNS. SANCTIONS_SCREENING_MATCH_GENERAL screens a name against OFAC's SDN and consolidated sanctions lists with fuzzy matching. CRYPTO_PRICE_USD returns a crypto asset's current dollar price as the consensus of several public exchanges. REGULATORY_FILING_MONITOR_GENERAL counts and lists SEC EDGAR filings in a period. CORPORATE_REGISTRY_LOOKUP_GENERAL looks a company up in GLEIF's LEI registry. SSL_VERIFICATION_CERT checks a host's TLS certificate with a real handshake. CVE_LOOKUP_CVSS returns a CVE's CVSS score and details from NVD. VULNERABILITY_TRIAGE_GENERAL returns a CVE's NVD CVSS base score. WEATHER_CHECK_TEMPERATURE returns a place's current air temperature in Celsius. WEATHER_FORECAST_GENERAL returns a place's forecast high, low, rain chance and condition. GAS_PRICE_GENERAL returns an EVM chain's gas price in gwei and the cost of a transfer. URL_SCAN_VERDICT says whether a URL is safe to visit. THREAT_INTELLIGENCE_INDICATOR reports whether an IP, domain or hash is flagged in public threat feeds. CURRENCY_EXCHANGE_CONVERT converts an amount between two currencies. FX_NOW_CAD returns the current USD/CAD exchange rate. FX_NOW_EUR returns the current USD/EUR exchange rate. FX_NOW_SEK returns the current USD/SEK exchange rate. DNS_RECORD_LOOKUP_GENERAL reports whether a name has a record of a given DNS type. TVL_LOOKUP_GENERAL returns the total value locked of a DeFi protocol or chain.
+description: One miner serving 33 Telegraph intents. FRAUD_RISK_GENERAL fuses IP reputation, Tor/VPN exposure, domain and phishing-feed reputation, card-BIN metadata and behavioural pattern rules into a graded risk level and abstains honestly when evidence is insufficient. FACT_CHECK_GENERAL checks a specific factual claim against multiple independent sources and returns a verdict with cited sources, abstaining when evidence is insufficient. CONTRACT_OBLIGATION_AUDIT_GENERAL extracts a contract's obligations, judges compliance and cites only clause wording verified to occur verbatim in the supplied contract (accepts the text or a link to an HTML or PDF). IP_GEOLOCATION_GENERAL locates an IP address by consensus of several keyless geolocation providers. EMAIL_SECURITY_GENERAL reports whether a DNS lookup of a given record type for a mail domain succeeds (DNS status NOERROR). URL_SAFE_GENERAL checks a URL against OpenPhish's live phishing feed and Cloudflare's malware and phishing DNS filter, counting the sources that flag it. MALWARE_DETECTION_HASH reports whether a file hash (MD5, SHA-1 or SHA-256), domain or IP address is flagged as malicious by CIRCL hashlookup, Team Cymru's malware hash registry, AlienVault OTX, OpenPhish and Cloudflare's security DNS. SANCTIONS_SCREENING_MATCH_GENERAL screens a name against OFAC's SDN and consolidated sanctions lists with fuzzy matching. CRYPTO_PRICE_USD returns a crypto asset's current dollar price as the consensus of several public exchanges. REGULATORY_FILING_MONITOR_GENERAL counts and lists SEC EDGAR filings in a period. CORPORATE_REGISTRY_LOOKUP_GENERAL looks a company up in GLEIF's LEI registry. SSL_VERIFICATION_CERT checks a host's TLS certificate with a real handshake. CVE_LOOKUP_CVSS returns a CVE's CVSS score and details from NVD. VULNERABILITY_TRIAGE_GENERAL returns a CVE's NVD CVSS base score. WEATHER_CHECK_TEMPERATURE returns a place's current air temperature in Celsius. WEATHER_FORECAST_GENERAL returns a place's forecast high, low, rain chance and condition. GAS_PRICE_GENERAL returns an EVM chain's gas price in gwei and the cost of a transfer. URL_SCAN_VERDICT says whether a URL is safe to visit. THREAT_INTELLIGENCE_INDICATOR reports whether an IP, domain or hash is flagged in public threat feeds. CURRENCY_EXCHANGE_CONVERT converts an amount between two currencies. FX_NOW_CAD returns the current USD/CAD exchange rate. FX_NOW_EUR returns the current USD/EUR exchange rate. FX_NOW_SEK returns the current USD/SEK exchange rate. DNS_RECORD_LOOKUP_GENERAL reports whether a name has a record of a given DNS type. TVL_LOOKUP_GENERAL returns the total value locked of a DeFi protocol or chain. WEB_SEARCH_GENERAL answers current-information queries from live web sources, citing them. CHAT_COMPLETION_GENERAL replies to general questions and conversation. RESEARCH_QUERY_GENERAL answers research questions with cited scholarly sources. SECURITY_REVIEW_GENERAL reviews code, dependencies, contracts, repositories and websites for security findings. EVENT_OUTCOME_RESOLUTION_GENERAL resolves named real-world events from settled markets and cited evidence. TOKEN_HOLDER_COUNT_GENERAL returns the number of addresses holding a token. SLA_COMPLIANCE_GENERAL returns a service's published uptime for a period and whether it met a stated target. RETURN_POLICY_VERIFY_GENERAL reads a retailer's return window and conditions from its own policy page.
 base_url: https://fraudrisk.onrender.com
 
 auth:
@@ -366,6 +366,118 @@ endpoints:
             intents: ["*"]
             description: "DeFi protocol, pool or chain."
 
+  - path: /web-search
+    external_path: /web-search
+    method: POST
+    description: Answers a query that needs current or externally sourced information (latest news, facts, figures) with a written answer drawn from live web sources (Wikipedia, DuckDuckGo, Google News, and Tavily, Brave or Serper when configured), the URLs of the sources used, and a one-sentence brief.
+    intents: [WEB_SEARCH_GENERAL]
+    params:
+      body:
+        required:
+          - name: query
+            type: string
+            intents: ["*"]
+            description: "What to search for."
+
+  - path: /chat-completion
+    external_path: /chat-completion
+    method: POST
+    description: Replies to a general-knowledge, reasoning, explanation or conversational message that needs no live data. For a will-X-happen question the reply leads with Likely, Unlikely or Uncertain. Also does arithmetic and answers date questions exactly.
+    intents: [CHAT_COMPLETION_GENERAL]
+    params:
+      body:
+        required:
+          - name: message
+            type: string
+            intents: ["*"]
+            description: "The message or question."
+
+  - path: /research-query
+    external_path: /research-query
+    method: POST
+    description: Answers a research question in one paragraph supported by citations to scholarly sources (PubMed and OpenAlex abstracts, Wikipedia background), returning the answer, how many sources it drew on, their URLs, and a one-sentence brief.
+    intents: [RESEARCH_QUERY_GENERAL]
+    params:
+      body:
+        required:
+          - name: question
+            type: string
+            intents: ["*"]
+            description: "The research question."
+
+  - path: /security-review
+    external_path: /security-review
+    method: POST
+    description: "Reviews code, dependencies (requirements.txt, package.json, lock files, name@version), a Solidity contract, a GitHub repository or a website for security findings: known CVEs and GHSA advisories from OSV, hard-coded secrets, injection-prone patterns, TLS and security-header weaknesses. Returns a verdict, the number of vulnerabilities, their ids (CVE, GHSA, CWE, SWC) most serious first, and a summary."
+    intents: [SECURITY_REVIEW_GENERAL]
+    params:
+      body:
+        required:
+          - name: target
+            type: string
+            intents: ["*"]
+            description: "Code, package, contract or site to review."
+
+  - path: /event-outcome
+    external_path: /event-outcome
+    method: POST
+    description: "Resolves a specific, checkable real-world event for a prediction market: whether it happened (yes, no or unresolved), the winner if it has one, when it settled and the sources cited. Uses settled prediction markets and retrieved evidence, and answers unresolved for events that are in the future or not yet settled."
+    intents: [EVENT_OUTCOME_RESOLUTION_GENERAL]
+    params:
+      body:
+        required:
+          - name: event
+            type: string
+            intents: ["*"]
+            description: "The event or question to resolve."
+
+  - path: /token-holders
+    external_path: /token-holders
+    method: POST
+    description: Returns how many distinct addresses hold an ERC-20 token, given its contract address (or symbol) and chain (Ethereum, Optimism, Base, Polygon, Arbitrum, Gnosis, Avalanche), from public block-explorer indexes (Blockscout, Ethplorer, Routescan).
+    intents: [TOKEN_HOLDER_COUNT_GENERAL]
+    params:
+      body:
+        required:
+          - name: token
+            type: string
+            intents: ["*"]
+            description: "Token contract address or name."
+          - name: chain
+            type: string
+            intents: ["*"]
+            description: "Chain of the token."
+
+  - path: /sla-compliance
+    external_path: /sla-compliance
+    method: POST
+    description: Returns the published uptime percentage of a monitored service (Upptime public status data) for the last 24 hours, 7 days, 30 days, 365 days or all time, the SLA target if the request states one (for example 99.9%), and whether the uptime met it. Other periods and unmonitored services return no uptime.
+    intents: [SLA_COMPLIANCE_GENERAL]
+    params:
+      body:
+        required:
+          - name: service
+            type: string
+            intents: ["*"]
+            description: "The service."
+          - name: period
+            type: string
+            intents: ["*"]
+            description: "Period to measure, e.g. last 30 days."
+
+  - path: /return-policy
+    external_path: /return-policy
+    method: POST
+    description: Reads a retailer's own return policy page live and returns the return window in days, the conditions attached to returns (unopened, original packaging, restocking fees, store credit), whether the policy was found and confirmed on the retailer's own site, and the page URLs cited. Pages that block bots or state no period return no window.
+    intents: [RETURN_POLICY_VERIFY_GENERAL]
+    params:
+      body:
+        required:
+          - name: retailer
+            type: string
+            intents: ["*"]
+            description: "Retailer."
+
 semantics:
   supported_intents:
     - FRAUD_RISK_GENERAL
@@ -393,3 +505,11 @@ semantics:
     - FX_NOW_SEK
     - DNS_RECORD_LOOKUP_GENERAL
     - TVL_LOOKUP_GENERAL
+    - WEB_SEARCH_GENERAL
+    - CHAT_COMPLETION_GENERAL
+    - RESEARCH_QUERY_GENERAL
+    - SECURITY_REVIEW_GENERAL
+    - EVENT_OUTCOME_RESOLUTION_GENERAL
+    - TOKEN_HOLDER_COUNT_GENERAL
+    - SLA_COMPLIANCE_GENERAL
+    - RETURN_POLICY_VERIFY_GENERAL

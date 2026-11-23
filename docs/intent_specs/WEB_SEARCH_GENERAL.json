@@ -1,0 +1,47 @@
+{
+  "intent_id": "WEB_SEARCH_GENERAL",
+  "fetched_at": "2026-11-22T20:34:39Z",
+  "lifecycle_state": "active",
+  "class": "judgment",
+  "evaluation": {
+    "kind": "judgment",
+    "via": "generic",
+    "comparator": null
+  },
+  "request": {
+    "params": [
+      {
+        "name": "query",
+        "type": "string",
+        "required": true,
+        "description": "What to search for"
+      }
+    ],
+    "schema_version": 3,
+    "served_by": "WEB_SEARCH"
+  },
+  "response": {
+    "fields": [
+      {
+        "name": "answer",
+        "description": "The written answer drawn from the web search",
+        "type": "string",
+        "off_chain": true
+      },
+      {
+        "name": "sources",
+        "description": "URLs or names of the sources the answer cites",
+        "type": "list",
+        "off_chain": true
+      },
+      {
+        "name": "brief",
+        "description": "The answer to the request in one plain sentence of at most 80 characters",
+        "type": "string",
+        "processed": true
+      }
+    ],
+    "format_version": 3,
+    "served_by": "WEB_SEARCH"
+  }
+}

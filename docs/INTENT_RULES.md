@@ -42,12 +42,21 @@ These rules are enforced by `tests/rules/` and by `tests/gateway/`. If you add a
 
 9. Never fabricate. When a value cannot be established return the honest empty value for its type:
    `null` for a number, `""` for a string, `[]` for a list, `false` for a boolean. Never `0` for a
-   number whose range excludes it, and never a plausible-looking guess.
+   number whose range excludes it, and never a plausible-looking guess. An enum that has an explicit
+   "unknown" member (`unresolved`) uses it; an enum without one is `null`. A free-text answer field
+   (`answer`, `reply`, `summary`) is never empty: when nothing could be established it says so in one honest
+   sentence ("No sources were found for ..."), because an empty answer reads as a failed spot check.
 10. Never hard-code answers for an intent's `question_keys` (the questions Telegraph asks to
     score it). Every answer comes from a real lookup, because the same code must answer any input.
-11. No LLM and no API key for these intents. Use keyless public sources only, verify each one live
-    before relying on it, and note its terms in the intent's docs. A source being down must degrade
-    the answer (fewer sources), not break it.
+11. Keyless by default; a language model is an optional extra, never a dependency. The only model allowed is
+    Groq, only through `intentkit.groq` (no direct calls to it, no Anthropic, no OpenAI), and only when
+    `GROQ_API_KEY` is set. An intent that uses it is marked `llm=True` in the registry and MUST give a valid, honest
+    answer with no key and on every Groq failure: no key, 401, 429, a retired model, 5xx, timeout, malformed or
+    ungrounded output. So: gather what public sources say first (verify each live, note its terms in the docs), build
+    the keyless answer from that, and offer Groq only the time that is left. A source being down degrades the answer,
+    it never breaks it. Model output is untrusted: `sources` are URLs of documents that were actually retrieved
+    (never ones the model wrote), enums are mapped to the spec's values, and a claim must be grounded (a security
+    finding counts only if it quotes code that occurs in the input).
 12. An answer that rests on a single source, or on nothing, must say so where the response has a
     free-text field (`summary`, `reasoning`), and be cached for a short time only.
 

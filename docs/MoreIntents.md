@@ -1,9 +1,10 @@
-# More intents: keyless, code-only (`intents/`)
+# More intents (`intents/`)
 
-Eighteen intents added on top of the original seven, chosen by observed demand (see the end) and by whether a
-keyless public source can answer them honestly. They follow [INTENT_RULES.md](INTENT_RULES.md); the request and
-response fields are Telegraph's own, snapshotted in `docs/intent_specs/`. None needs an API key or an LLM, and each
-returns HTTP 200 with exactly its response fields for any input. When a value cannot be established it is `null`
+Twenty-six intents added on top of the original seven, chosen by observed demand (see the end) and by whether a
+public source can answer them honestly. They follow [INTENT_RULES.md](INTENT_RULES.md); the request and response
+fields are Telegraph's own, snapshotted in `docs/intent_specs/`. Twenty-one need no API key and no model. Five can
+use Groq as an optional extra (see "Groq-assisted intents") and answer without it. Each returns HTTP 200 with
+exactly its response fields for any input. When a value cannot be established it is `null`
 (number), `""` (string), `[]` (list) or `false` (boolean), never a guess.
 
 | Intent | Endpoint | Request | Response | Sources |
@@ -24,8 +25,51 @@ returns HTTP 200 with exactly its response fields for any input. When a value ca
 | `FX_NOW_EUR` / `FX_NOW_CAD` / `FX_NOW_SEK` | `POST /fx-now-eur` / `-cad` / `-sek` | `currency` | `rate` | ECB (Frankfurter), open.er-api.com |
 | `VULNERABILITY_TRIAGE_GENERAL` | `POST /vulnerability-triage` | `cve_id` | `cvss_base_score` | NVD, CIRCL |
 | `DNS_RECORD_LOOKUP_GENERAL` | `POST /dns-record` | `name`, `record_type` | `has_record` | Google and Cloudflare DNS-over-HTTPS |
+| `TOKEN_HOLDER_COUNT_GENERAL` | `POST /token-holders` | `token`, `chain` | `token`, `chain`, `holders_count`, `token_symbol` | Blockscout, Ethplorer, Routescan |
+| `SLA_COMPLIANCE_GENERAL` | `POST /sla-compliance` | `service`, `period` | `service`, `uptime_pct`, `sla_target_pct`, `compliant`, `period` | Upptime's published uptime data |
+| `RETURN_POLICY_VERIFY_GENERAL` | `POST /return-policy` | `retailer` | `retailer`, `return_window_days`, `conditions`, `verified`, `sources` | the retailer's own policy page (Wikidata finds the site) |
+| `WEB_SEARCH_GENERAL` | `POST /web-search` | `query` | `answer`, `sources`, `brief` | Wikipedia, DuckDuckGo, Google News; Tavily/Brave/Serper if keyed; Groq optional |
+| `CHAT_COMPLETION_GENERAL` | `POST /chat-completion` | `message` | `reply`, `verdict`, `brief` | exact arithmetic/date helpers, Wikipedia/DuckDuckGo; Groq optional |
+| `RESEARCH_QUERY_GENERAL` | `POST /research-query` | `question` | `answer`, `source_count`, `sources`, `brief` | PubMed, OpenAlex, Wikipedia; Groq optional |
+| `SECURITY_REVIEW_GENERAL` | `POST /security-review` | `target` | `verdict`, `vulnerability_count`, `issues`, `summary` | OSV, a real TLS/HTTP check, CWE/SWC code rules; Groq optional |
+| `EVENT_OUTCOME_RESOLUTION_GENERAL` | `POST /event-outcome` | `event` | `event`, `outcome`, `resolved_yes`, `winner`, `resolved_at`, `sources` | settled Polymarket markets; Groq optional |
 
 `?` marks an optional request param (declared under `optional:` in `miner.yaml`).
+
+## Groq-assisted intents
+
+`WEB_SEARCH_GENERAL`, `CHAT_COMPLETION_GENERAL`, `RESEARCH_QUERY_GENERAL`, `SECURITY_REVIEW_GENERAL` and
+`EVENT_OUTCOME_RESOLUTION_GENERAL` can use Groq (`GROQ_API_KEY`, an OpenAI-compatible API) but never depend on it.
+
+- **Order of work.** Each request first gathers what public sources say, builds the complete keyless answer from that,
+  and only then offers Groq the time that is left (a safety margin of `LLM_MARGIN_S` is always kept). If Groq answers
+  well its answer replaces the keyless one; otherwise the keyless answer is returned. Nothing waits on Groq past the
+  budget, so a slow model cannot turn into an empty answer.
+- **Failure handling** (`intentkit/groq.py`, never raises): no key means Groq is skipped; a 401 switches it off for 10
+  minutes (logged once, the key is never logged); a 429 cools down only that model for the `retry-after` time and tries
+  the next model in `GROQ_MODELS` (Groq rate-limits per model); a retired model id is skipped for an hour; a 5xx, a
+  timeout, a network error, empty or malformed output simply fall back. The state is process-wide because all five
+  intents share one key and one rate limit.
+- **Untrusted output.** Sources and URLs always come from documents we retrieved, never from the model; verdict and outcome
+  values are mapped to the spec's literals or dropped; a security finding counts only if it names a real CWE/SWC/CVE id
+  and quotes code that occurs verbatim in the input. A keyless answer is cached briefly (`CACHE_TTL_DEGRADED_S`) when a
+  key is set but Groq failed, so a recovered Groq soon replaces it.
+- **What the keyless answers are.** Honest and extractive, not fluent. `WEB_SEARCH` quotes the best sentences of the
+  sources and lists recent headlines as headlines; `CHAT_COMPLETION` does exact arithmetic and dates, small talk, and
+  reference lookups ("Here is what a reference source says: ...") and answers will-X-happen questions with `Uncertain`;
+  `RESEARCH_QUERY` quotes abstracts with years; `EVENT_OUTCOME` answers `yes`/`no` only from a closed Polymarket market whose
+  wording and numbers match, else `unresolved`; `SECURITY_REVIEW` is fully deterministic for dependencies, sites and
+  pattern rules (a bare contract address, a private repository or an unreachable site gets a null verdict rather than a
+  guess).
+- **Privacy.** With a key set, the text of a request (and fetched source snippets) is sent to Groq. Telegraph job
+  parameters are public, but do not set the key if that is not acceptable.
+- **Model ids.** The defaults (`llama-3.3-70b-versatile`, `llama-3.1-8b-instant`) were not verified against a live key
+  when written, because none was available. Copy the current ids from your Groq console into `GROQ_MODELS`.
+- **Limits worth knowing.** `QUESTION_ANSWERING_GENERAL` is not built: Telegraph still lists it as `registered` with no
+  response format. `EVENT_OUTCOME`'s keyless path depends on Polymarket's public API, which may be unreachable at times
+  (the call is capped at 3.5 s and then ignored). OpenAlex's free budget is shared per IP, so `RESEARCH_QUERY` may lean
+  on PubMed alone. `SECURITY_REVIEW`'s site checks count missing hardening headers as weaknesses (low severity), so an
+  ordinary site will usually read "Needs changes".
 
 ## Behaviour worth knowing
 
@@ -56,6 +100,27 @@ returns HTTP 200 with exactly its response fields for any input. When a value ca
   "live" mid-market rate can differ by a fraction of a percent.
 - **Gas.** `transfer_fee_usd` is `gas_price x 21,000 gas x the native token's Coinbase price`. Supported chains:
   ethereum, base, arbitrum, optimism, polygon, bsc, avalanche.
+- **Token holders.** One primary source per chain answers and the others are fallbacks, never averaged, because they
+  count differently (USDT on Ethereum: Blockscout 17.2M, Ethplorer 15.7M, Routescan 15.7M "approx"). Order:
+  Blockscout, Ethplorer (Ethereum only), Routescan (Ethereum and Avalanche, last because it labels its count approximate).
+  An address is always used as given; a symbol or name is resolved to the exact-symbol token that is reputable and has the
+  largest market cap (so copycat tickers are not picked), which takes about 5 s on Ethereum. **Base, Polygon, Arbitrum and
+  Gnosis rely on Blockscout instances that returned a Cloudflare bot challenge from the development machine** (never worked
+  around), so they answer `null` wherever that happens. Check the Base example from the intent's own description
+  (`0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` on base) after deploying, and treat Base as unsupported if it is blocked there too.
+- **SLA compliance.** Returns Upptime's published availability figure verbatim for the windows Upptime publishes (24 hours, 7
+  days, 30 days, 365 days, all time) for services a configured Upptime repository monitors (`UPPTIME_REPOS`, default
+  `upptime/upptime`: Google, Wikipedia, Hacker News). Any other window or service is `null`: recomputing other windows from
+  the daily downtime minutes did not reproduce Upptime's own day and month figures, and an incident-derived estimate from a
+  status page would be an invented number. `sla_target_pct` is only a percentage written in the request ("99.9%");
+  `compliant` is true only when both numbers are known and the uptime meets the target, so `false` also means "cannot confirm".
+- **Return policy.** Finds the retailer's site (a domain or URL as given, else Wikidata's official-website property), then
+  reads its policy page: a small map of known policy URLs (a locator, not an answer), links on the homepage mentioning
+  returns, and a few common paths. Only statements about returning or refunding within a period count; shipping, processing
+  and bank times are ignored. `verified` is true only when a window was read from the retailer's own domain. Pages that
+  block bots (Framework, behind Cloudflare), render without JavaScript text, or state no period give a null window.
+  Checked on 2026-11-23: Adafruit, System76 and Arduino's store parse (30 days each); SparkFun, Purism and OLIMEX do not.
+  Pages are cached for six hours, so a shop is asked for a handful of pages a few times a day.
 - **Not built:** `STOCK_PRICE_US_EQUITY` (no keyless quote source was found that works: Yahoo's quote API
   answered 401 and Stooq's CSV URL answered 404 when tried on 2026-11-22; a source that works would unblock it) and
   every intent whose `response` is still `null` on Telegraph.
@@ -74,13 +139,17 @@ All keyless; see [.env.example](.env.example). Per-intent overrides use the pack
 2. Push to `main` (Render deploys). Confirm `GET /healthz` lists every intent as `ok`. Set `SEC_USER_AGENT` on
    Render to something with a contact address ("YourName you@example.com"): SEC may reject an anonymous client
    from a cloud IP.
-3. **Update the YAML at the registered `yamlUrl`.** For this miner that is the gist
-   (`gist.githubusercontent.com/deep17raj/.../raw/miner.yaml`), not Render, so pushing alone changes nothing
-   on-chain. Hash the LF bytes: `git show HEAD:miner.yaml | sha256sum` (or the output of
-   `python scripts/sync_intents.py` on a clean tree). Do not hash a checked-out copy on Windows: with
-   `core.autocrlf` it can become CRLF and the hash will not match what is served.
+3. **Put the YAML in the gist and register a revision-pinned URL.** Edit the gist (`gist.github.com/deep17raj/<id>`),
+   then note its new revision id (`https://api.github.com/gists/<id>` -> `history[0].version`) and register
+   `https://gist.githubusercontent.com/deep17raj/<id>/raw/<revision>/miner.yaml`, NOT `.../raw/miner.yaml`. A revision URL
+   always returns the same bytes (checked on 2026-11-22: the three revisions of this gist return three different files),
+   so a later gist edit can never break the on-chain hash. This is exactly what went wrong before: the hash registered
+   on-chain (`da448ddc...`) is the hash of gist revision `e4d0454f9b` (the original 7-intent file), the gist was then edited
+   in place, and the mutable `/raw/miner.yaml` URL started returning different bytes. Hash the LF bytes before sending
+   (`git show HEAD:miner.yaml | sha256sum`) and confirm `curl -sL <the pinned URL> | sha256sum` is identical. Do not hash a
+   checked-out copy on Windows: with `core.autocrlf` it can become CRLF.
 4. **Call `updateMiner`, not `register.sh`.** `register.sh` calls `registerMiner` and stops at "id 83159274 is taken".
-   `updateMiner(oldRegistrationId, yamlUrl, yamlHash, feeAddress, minPriceUsdc, supportedIntents)` takes all 25
+   `updateMiner(oldRegistrationId, yamlUrl, yamlHash, feeAddress, minPriceUsdc, supportedIntents)` takes all 33
    intents, ends the old registration and creates a new `registrationId`; the `id` and `slug` in the YAML do not
    change. Re-check the Diamond address and bond currency first (changed 2026-11-19, bonds in USDC). See also
    [NetworkIntents.md](NetworkIntents.md#adding-these-to-the-already-registered-miner).
@@ -92,7 +161,7 @@ All keyless; see [.env.example](.env.example). Per-intent overrides use the pack
    US egress can differ from a laptop (exchange region blocks, NVD 403s, SEC user-agent checks).
 
 Measured on a laptop with every intent warmed and the 10 MB DefiLlama list parsed: 209 MB peak, 167 MB steady
-(Python 3.11, one worker), 10-11 s cold start (the intents' downloads run concurrently). Confirm your Render
+(Python 3.11, one worker), 10-20 s cold start (the intents' downloads run concurrently). Confirm your Render
 instance has at least 512 MB.
 
 ## How the intents were chosen (2026-11-22)

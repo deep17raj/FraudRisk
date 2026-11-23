@@ -35,6 +35,7 @@ class IntentSpec:
     endpoint_description: str   # Telegraph's node routes questions by this text
     summary: str                # one sentence in the miner's top-level description
     probe: str                  # JSON body register.sh smoke-tests the live endpoint with
+    llm: bool = False           # may use Groq (intentkit.groq); then it MUST also answer without it (rule 11)
 
     @property
     def name(self) -> str:      # key in the gateway's app table and /healthz
@@ -233,6 +234,66 @@ INTENTS: tuple[IntentSpec, ...] = (
         "Returns the total value locked in US dollars of a DeFi protocol or blockchain from DefiLlama, and for a protocol on a named chain its value locked on that chain.",
         "TVL_LOOKUP_GENERAL returns the total value locked of a DeFi protocol or chain.",
         '{"protocol":"aave"}'),
+    # ---- Groq-assisted intents (intents/<package>): each answers from public sources without a key ------------------
+    IntentSpec(
+        "intents.web_search", "WEB_SEARCH_GENERAL", "/web-search",
+        (_p("query", "What to search for."),),
+        ("answer", "sources", "brief"),
+        "Answers a query that needs current or externally sourced information (latest news, facts, figures) with a written answer drawn from live web sources (Wikipedia, DuckDuckGo, Google News, and Tavily, Brave or Serper when configured), the URLs of the sources used, and a one-sentence brief.",
+        "WEB_SEARCH_GENERAL answers current-information queries from live web sources, citing them.",
+        '{"query":"What is the latest news on the Fed interest rate decision?"}', llm=True),
+    IntentSpec(
+        "intents.chat_completion", "CHAT_COMPLETION_GENERAL", "/chat-completion",
+        (_p("message", "The message or question."),),
+        ("reply", "verdict", "brief"),
+        "Replies to a general-knowledge, reasoning, explanation or conversational message that needs no live data. For a will-X-happen question the reply leads with Likely, Unlikely or Uncertain. Also does arithmetic and answers date questions exactly.",
+        "CHAT_COMPLETION_GENERAL replies to general questions and conversation.",
+        '{"message":"Why is the sky blue?"}', llm=True),
+    IntentSpec(
+        "intents.research_query", "RESEARCH_QUERY_GENERAL", "/research-query",
+        (_p("question", "The research question."),),
+        ("answer", "source_count", "sources", "brief"),
+        "Answers a research question in one paragraph supported by citations to scholarly sources (PubMed and OpenAlex abstracts, Wikipedia background), returning the answer, how many sources it drew on, their URLs, and a one-sentence brief.",
+        "RESEARCH_QUERY_GENERAL answers research questions with cited scholarly sources.",
+        '{"question":"What does the evidence say about the health effects of intermittent fasting?"}', llm=True),
+    IntentSpec(
+        "intents.security_review", "SECURITY_REVIEW_GENERAL", "/security-review",
+        (_p("target", "Code, package, contract or site to review."),),
+        ("verdict", "vulnerability_count", "issues", "summary"),
+        "Reviews code, dependencies (requirements.txt, package.json, lock files, name@version), a Solidity contract, a GitHub repository or a website for security findings: known CVEs and GHSA advisories from OSV, hard-coded secrets, injection-prone patterns, TLS and security-header weaknesses. Returns a verdict, the number of vulnerabilities, their ids (CVE, GHSA, CWE, SWC) most serious first, and a summary.",
+        "SECURITY_REVIEW_GENERAL reviews code, dependencies, contracts, repositories and websites for security findings.",
+        '{"target":"lodash@4.17.15"}', llm=True),
+    IntentSpec(
+        "intents.event_outcome", "EVENT_OUTCOME_RESOLUTION_GENERAL", "/event-outcome",
+        (_p("event", "The event or question to resolve."),),
+        ("event", "outcome", "resolved_yes", "winner", "resolved_at", "sources"),
+        "Resolves a specific, checkable real-world event for a prediction market: whether it happened (yes, no or unresolved), the winner if it has one, when it settled and the sources cited. Uses settled prediction markets and retrieved evidence, and answers unresolved for events that are in the future or not yet settled.",
+        "EVENT_OUTCOME_RESOLUTION_GENERAL resolves named real-world events from settled markets and cited evidence.",
+        '{"event":"Did the Fed cut rates in September 2025?"}', llm=True),
+    # ---- more keyless intents, from the second demand list ------------------------------------------------------------
+    IntentSpec(
+        "intents.token_holders", "TOKEN_HOLDER_COUNT_GENERAL", "/token-holders",
+        (_p("token", "Token contract address or name."),
+         _p("chain", "Chain of the token.")),
+        ("token", "chain", "holders_count", "token_symbol"),
+        "Returns how many distinct addresses hold an ERC-20 token, given its contract address (or symbol) and chain (Ethereum, Optimism, Base, Polygon, Arbitrum, Gnosis, Avalanche), from public block-explorer indexes (Blockscout, Ethplorer, Routescan).",
+        "TOKEN_HOLDER_COUNT_GENERAL returns the number of addresses holding a token.",
+        '{"token":"0xdAC17F958D2ee523a2206206994597C13D831ec7","chain":"ethereum"}'),
+    IntentSpec(
+        "intents.sla_compliance", "SLA_COMPLIANCE_GENERAL", "/sla-compliance",
+        (_p("service", "The service."),
+         _p("period", "Period to measure, e.g. last 30 days.")),
+        ("service", "uptime_pct", "sla_target_pct", "compliant", "period"),
+        "Returns the published uptime percentage of a monitored service (Upptime public status data) for the last 24 hours, 7 days, 30 days, 365 days or all time, the SLA target if the request states one (for example 99.9%), and whether the uptime met it. Other periods and unmonitored services return no uptime.",
+        "SLA_COMPLIANCE_GENERAL returns a service's published uptime for a period and whether it met a stated target.",
+        '{"service":"Google","period":"last 30 days"}'),
+    IntentSpec(
+        "intents.return_policy", "RETURN_POLICY_VERIFY_GENERAL", "/return-policy",
+        (_p("retailer", "Retailer."),),
+        ("retailer", "return_window_days", "conditions", "verified", "sources"),
+        "Reads a retailer's own return policy page live and returns the return window in days, the conditions attached to returns (unopened, original packaging, restocking fees, store credit), whether the policy was found and confirmed on the retailer's own site, and the page URLs cited. Pages that block bots or state no period return no window.",
+        "RETURN_POLICY_VERIFY_GENERAL reads a retailer's return window and conditions from its own policy page.",
+        '{"retailer":"Adafruit"}'),
 )
 
 BY_INTENT = {s.intent: s for s in INTENTS}

@@ -64,6 +64,8 @@ class FakeHttp:
             await asyncio.sleep(delay)
         if isinstance(rule, Exception):
             raise rule
+        if isinstance(rule, httpx.Response):        # a ready-made response (custom status and headers)
+            return rule
         if isinstance(rule, bool) or rule is None:
             return httpx.Response(503, text="down")
         if isinstance(rule, int):

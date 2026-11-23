@@ -1,0 +1,92 @@
+{
+  "intent_id": "SLA_COMPLIANCE_GENERAL",
+  "fetched_at": "2026-11-23T04:23:47Z",
+  "lifecycle_state": "active",
+  "class": "judgment",
+  "evaluation": {
+    "kind": "judgment",
+    "via": "generic",
+    "comparator": null
+  },
+  "request": {
+    "params": [
+      {
+        "name": "service",
+        "type": "string",
+        "required": true,
+        "description": "The service"
+      },
+      {
+        "name": "period",
+        "type": "string",
+        "required": true,
+        "description": "Period to measure, e.g. last 30 days"
+      }
+    ],
+    "schema_version": 4,
+    "served_by": "SLA_COMPLIANCE"
+  },
+  "response": {
+    "fields": [
+      {
+        "name": "service",
+        "description": "The service checked",
+        "type": "string",
+        "off_chain": true
+      },
+      {
+        "name": "uptime_pct",
+        "description": "Measured uptime or availability, percent",
+        "type": "number",
+        "unit": "percent",
+        "range": [
+          0,
+          100
+        ],
+        "scored": true,
+        "decimals": 6
+      },
+      {
+        "name": "sla_target_pct",
+        "description": "SLA target, percent",
+        "type": "number",
+        "unit": "percent",
+        "range": [
+          0,
+          100
+        ],
+        "decimals": 6,
+        "off_chain": true
+      },
+      {
+        "name": "compliant",
+        "description": "Whether the SLA was met",
+        "type": "bool",
+        "true_when": [
+          "true",
+          "yes",
+          "met",
+          "compliant"
+        ],
+        "false_when": [
+          "false",
+          "no",
+          "0",
+          "not met",
+          "breached",
+          "non-compliant",
+          "missed"
+        ],
+        "off_chain": true
+      },
+      {
+        "name": "period",
+        "description": "Period measured",
+        "type": "string",
+        "off_chain": true
+      }
+    ],
+    "format_version": 4,
+    "served_by": "SLA_COMPLIANCE"
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "intent_id": "RETURN_POLICY_VERIFY_GENERAL",
+  "fetched_at": "2026-11-23T04:23:48Z",
+  "lifecycle_state": "active",
+  "class": "judgment",
+  "evaluation": {
+    "kind": "judgment",
+    "via": "generic",
+    "comparator": null
+  },
+  "request": {
+    "params": [
+      {
+        "name": "retailer",
+        "type": "string",
+        "required": true,
+        "description": "Retailer"
+      }
+    ],
+    "schema_version": 3,
+    "served_by": "RETURN_POLICY_VERIFY"
+  },
+  "response": {
+    "fields": [
+      {
+        "name": "retailer",
+        "description": "The retailer the policy is for",
+        "type": "string",
+        "off_chain": true
+      },
+      {
+        "name": "return_window_days",
+        "description": "Number of days allowed for returns",
+        "type": "number",
+        "unit": "days",
+        "range": [
+          0,
+          3650
+        ],
+        "scored": true,
+        "decimals": 0
+      },
+      {
+        "name": "conditions",
+        "description": "Conditions attached to returns",
+        "type": "list",
+        "off_chain": true
+      },
+      {
+        "name": "verified",
+        "description": "Whether an actual policy was found and confirmed",
+        "type": "bool",
+        "true_when": [
+          "true",
+          "yes",
+          "1"
+        ],
+        "false_when": [
+          "false",
+          "no",
+          "0"
+        ],
+        "off_chain": true
+      },
+      {
+        "name": "sources",
+        "description": "URLs or names of the sources the answer cites",
+        "type": "list",
+        "off_chain": true
+      }
+    ],
+    "format_version": 3,
+    "served_by": "RETURN_POLICY_VERIFY"
+  }
+}

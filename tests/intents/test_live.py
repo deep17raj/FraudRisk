@@ -7,6 +7,7 @@ certificate), or on cross-checks against an independent source, never on a value
 from __future__ import annotations
 
 import importlib
+import os
 
 import httpx
 import pytest
@@ -193,3 +194,117 @@ def test_TVL_LOOKUP_GENERAL_protocol_chain_and_unknown():
         eth = c.post("/tvl-lookup", json={"protocol": "Ethereum"}).json()
         none = c.post("/tvl-lookup", json={"protocol": "nonexistent-protocol-zzz"}).json()
     assert aave["tvl_usd"] > 1e8 and eth["tvl_usd"] > 1e9 and none["tvl_usd"] is None
+
+
+# ---- Groq-assisted intents, keyless path (always) and with a real Groq key (only if GROQ_API_KEY is exported) ------
+def keyless(package: str):
+    """The real app with the model switched off, so the public-sources path is what is tested."""
+    app_mod = importlib.import_module(f"{package}.app")
+    settings = importlib.import_module(f"{package}.config").Settings.from_env()
+    return TestClient(app_mod.create_app(type(settings)(**{**settings.__dict__, "groq_api_key": ""})))
+
+
+needs_groq = pytest.mark.skipif(not os.environ.get("GROQ_API_KEY"), reason="export GROQ_API_KEY to run against real Groq")
+CODE_SAMPLE = "import os\ndef run(c):\n    os.system('ls ' + c)\n    return eval(c)\n"
+SQL_SAMPLE = "def q(db, u):\n    return db.execute('SELECT * FROM t WHERE n=' + u)\n"
+
+
+def test_WEB_SEARCH_GENERAL_keyless_answers_from_real_sources():
+    with keyless("intents.web_search") as c:
+        j = c.post("/web-search", json={"query": "population of Karachi"}).json()
+        news = c.post("/web-search", json={"query": "latest news on the Federal Reserve interest rate decision"}).json()
+        none = c.post("/web-search", json={"query": "zzzzqqqq nonsense xyzzy"}).json()
+    assert "Karachi" in j["answer"] and j["sources"] and all(u.startswith("http") for u in j["sources"]) and 0 < len(j["brief"]) <= 80
+    assert news["sources"] and "headlines" in news["answer"].lower() or news["sources"]
+    assert none["sources"] == [] and "No sources were found" in none["answer"]
+
+
+def test_CHAT_COMPLETION_GENERAL_keyless_exact_helpers_references_and_predictions():
+    with keyless("intents.chat_completion") as c:
+        assert c.post("/chat-completion", json={"message": "What is 12 * (3 + 4)?"}).json()["reply"] == "12 * (3 + 4) = 84"
+        ref = c.post("/chat-completion", json={"message": "Explain what a hash table is"}).json()
+        pred = c.post("/chat-completion", json={"message": "Will Bitcoin reach 200k next year?"}).json()
+    assert "hash table" in ref["reply"].lower() and len(ref["brief"]) <= 80
+    assert pred["verdict"] == "Uncertain" and pred["reply"].startswith("Uncertain")
+
+
+def test_RESEARCH_QUERY_GENERAL_keyless_cites_real_scholarly_sources():
+    with keyless("intents.research_query") as c:
+        j = c.post("/research-query", json={"question": "What does the evidence say about the health effects of intermittent fasting?"}).json()
+    assert j["source_count"] >= 1 and len(j["sources"]) == j["source_count"] and j["answer"].startswith("Based on the retrieved literature")
+    assert all(u.startswith("https://") for u in j["sources"])
+
+
+def test_SECURITY_REVIEW_GENERAL_finds_known_vulnerabilities_code_weaknesses_and_site_issues():
+    with keyless("intents.security_review") as c:
+        deps = c.post("/security-review", json={"target": "lodash@4.17.15"}).json()
+        code = c.post("/security-review", json={"target": CODE_SAMPLE}).json()
+        site = c.post("/security-review", json={"target": "https://expired.badssl.com/"}).json()
+        addr = c.post("/security-review", json={"target": "0x1234567890123456789012345678901234567890"}).json()
+        private = c.post("/security-review", json={"target": "http://169.254.169.254/latest/meta-data/"}).json()
+    assert deps["verdict"] == "Insecure" and deps["vulnerability_count"] >= 3 and any(i.startswith(("CVE-", "GHSA-")) for i in deps["issues"])
+    assert code["verdict"] == "Insecure" and {i.split(":")[0] for i in code["issues"]} >= {"CWE-78", "CWE-95"}
+    assert site["verdict"] == "Insecure" and any(i.startswith("CWE-295") for i in site["issues"])
+    assert addr["verdict"] is None and private["verdict"] is None
+
+
+def test_EVENT_OUTCOME_RESOLUTION_GENERAL_never_resolves_the_future_or_the_unverifiable():
+    with keyless("intents.event_outcome") as c:
+        future = c.post("/event-outcome", json={"event": "Will the Fed cut rates in March 2099?"}).json()
+        unknown = c.post("/event-outcome", json={"event": "Did my neighbour's cat win a prize on 2024-05-05?"}).json()
+    assert future["outcome"] == "unresolved" and future["resolved_yes"] is False
+    assert unknown["outcome"] == "unresolved" and unknown["sources"] == []
+
+
+@needs_groq
+def test_the_groq_assisted_intents_with_a_real_key():
+    """Needs GROQ_API_KEY in the environment. Checks the real API shape end to end; model ids come from GROQ_MODELS."""
+    with served("intents.chat_completion") as c:
+        j = c.post("/chat-completion", json={"message": "Why is the sky blue?"}).json()
+    assert len(j["reply"]) > 40 and "reference source" not in j["reply"] and len(j["brief"]) <= 80
+    with served("intents.web_search") as c:
+        w = c.post("/web-search", json={"query": "What is the capital of Australia?"}).json()
+    assert "Canberra" in w["answer"] and w["sources"]
+    with served("intents.research_query") as c:
+        r = c.post("/research-query", json={"question": "Does regular exercise reduce symptoms of depression?"}).json()
+    assert r["source_count"] >= 1 and len(r["answer"]) > 80
+    with served("intents.security_review") as c:
+        s = c.post("/security-review", json={"target": SQL_SAMPLE}).json()
+    assert s["verdict"] in ("Needs changes", "Insecure") and s["vulnerability_count"] >= 1
+
+
+# ---- TOKEN_HOLDER_COUNT_GENERAL / SLA_COMPLIANCE_GENERAL / RETURN_POLICY_VERIFY_GENERAL ---------------------------------
+def test_TOKEN_HOLDER_COUNT_GENERAL_addresses_symbols_and_unsupported_cases():
+    with served("intents.token_holders") as c:
+        usdt = c.post("/token-holders", json={"token": "0xdAC17F958D2ee523a2206206994597C13D831ec7", "chain": "ethereum"}).json()
+        op = c.post("/token-holders", json={"token": "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85", "chain": "optimism"}).json()
+        avax = c.post("/token-holders", json={"token": "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E", "chain": "avalanche"}).json()
+        none = c.post("/token-holders", json={"token": "0x" + "1" * 40, "chain": "dogechain"}).json()
+    assert usdt["token_symbol"] == "USDT" and usdt["holders_count"] > 5_000_000
+    assert op["token_symbol"] == "USDC" and op["holders_count"] > 100_000 and avax["holders_count"] > 100_000
+    assert none["holders_count"] is None
+
+
+def test_SLA_COMPLIANCE_GENERAL_returns_the_published_upptime_figure_and_nothing_computed():
+    summary = httpx.get("https://raw.githubusercontent.com/upptime/upptime/HEAD/history/summary.json", timeout=20).json()
+    google = next(s for s in summary if s["name"] == "Google")
+    with served("intents.sla_compliance") as c:
+        month = c.post("/sla-compliance", json={"service": "Google", "period": "last 30 days"}).json()
+        target = c.post("/sla-compliance", json={"service": "Google 99.9%", "period": "last year"}).json()
+        odd = c.post("/sla-compliance", json={"service": "Google", "period": "last 14 days"}).json()
+        unknown = c.post("/sla-compliance", json={"service": "Some Unmonitored Service", "period": "last month"}).json()
+    assert month["uptime_pct"] == float(google["uptimeMonth"].rstrip("%")) and target["sla_target_pct"] == 99.9
+    assert target["compliant"] is (target["uptime_pct"] >= 99.9)
+    assert odd["uptime_pct"] is None and unknown["uptime_pct"] is None
+
+
+def test_RETURN_POLICY_VERIFY_GENERAL_reads_live_policy_pages_and_never_guesses():
+    with served("intents.return_policy") as c:
+        adafruit = c.post("/return-policy", json={"retailer": "Adafruit"}).json()
+        system76 = c.post("/return-policy", json={"retailer": "System76"}).json()
+        nothing = c.post("/return-policy", json={"retailer": "nonexistentshopzzzz"}).json()
+        private = c.post("/return-policy", json={"retailer": "http://169.254.169.254/"}).json()
+    assert adafruit["return_window_days"] == 30 and adafruit["verified"] is True and adafruit["sources"]
+    assert system76["return_window_days"] == 30 and system76["verified"] is True
+    assert nothing["return_window_days"] is None and nothing["verified"] is False and nothing["sources"] == []
+    assert private["return_window_days"] is None and private["verified"] is False
