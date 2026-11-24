@@ -29,6 +29,7 @@ log = logging.getLogger("intents.sanctions")
 
 BASE = "https://sanctionslistservice.ofac.treas.gov/api/PublicationPreview/exports/"
 SDN_LIST, CONS_LIST = "OFAC SDN", "OFAC Consolidated (non-SDN)"
+RETRY_MISSING_S = 30.0       # how soon to try again for a list that has never downloaded
 _NULL = {"-0-", ""}
 
 
@@ -80,7 +81,10 @@ class SanctionsIndex:
         self.names: list[tuple[int, str, tuple[str, ...]]] = []        # (entry index, name, words)
         self.by_word: dict[str, list[int]] = {}                         # word -> indexes into self.names
         self.lists: tuple[str, ...] = ()
+        self.missing: tuple[str, ...] = ()             # lists that have never downloaded; retried soon, not at the TTL
         self.loaded_at = 0.0
+        self.attempted_at = 0.0
+        self._groups: dict[str, dict[str, Entry]] = {}
         self._task: Optional[asyncio.Task] = None
 
     @property
@@ -89,37 +93,44 @@ class SanctionsIndex:
 
     @property
     def stale(self) -> bool:
-        return time.monotonic() - self.loaded_at > self.ttl
+        now = time.monotonic()
+        return now - self.loaded_at > self.ttl or (bool(self.missing) and now - self.attempted_at > RETRY_MISSING_S)
 
     def size(self) -> int:
         return len(self.entries)
 
     # ---- loading ------------------------------------------------------------------------------------
     async def _get(self, client: httpx.AsyncClient, name: str) -> Optional[str]:
-        try:
-            r = await client.get(BASE + name, timeout=self.timeout, follow_redirects=True)
-            r.raise_for_status()
-            return r.content.decode("utf-8", "replace")
-        except Exception as exc:  # noqa: BLE001
-            log.warning("sanctions list download failed", extra={"fields": {"file": name, "error": f"{type(exc).__name__}: {exc}"}})
-            return None
+        for attempt in (1, 2):
+            try:
+                r = await client.get(BASE + name, timeout=self.timeout, follow_redirects=True)
+                r.raise_for_status()
+                return r.content.decode("utf-8", "replace")
+            except Exception as exc:  # noqa: BLE001
+                log.warning("sanctions list download failed", extra={"fields": {
+                    "file": name, "attempt": attempt, "error": f"{type(exc).__name__}: {exc}"}})
+        return None
 
     async def load(self, client: httpx.AsyncClient) -> None:
         sdn, sdn_alt, cons, cons_alt = await asyncio.gather(
             *(self._get(client, f) for f in ("SDN.CSV", "ALT.CSV", "CONS_PRIM.CSV", "CONS_ALT.CSV")))
-        groups: list[tuple[str, dict[str, Entry]]] = []
-        if sdn:
-            e = parse_primary(sdn, SDN_LIST)
-            if sdn_alt:
-                parse_aliases(sdn_alt, e)
-            groups.append((SDN_LIST, e))
-        if cons:
-            e = parse_primary(cons, CONS_LIST)
-            if cons_alt:
-                parse_aliases(cons_alt, e)
-            groups.append((CONS_LIST, e))
-        if not groups:
-            return                                    # keep whatever we already had
+        self.attempted_at = time.monotonic()
+        fresh: dict[str, dict[str, Entry]] = {}
+        for name, primary, alt in ((SDN_LIST, sdn, sdn_alt), (CONS_LIST, cons, cons_alt)):
+            if not primary:
+                continue
+            if not alt and name in self._groups:      # the aliases did not download: the earlier complete copy is better
+                continue
+            e = parse_primary(primary, name)
+            if alt:
+                parse_aliases(alt, e)
+            fresh[name] = e
+        merged = {**self._groups, **fresh}            # a list that failed to download keeps what it had
+        if not merged:
+            return
+        self._groups = merged
+        groups = [(name, merged[name]) for name in (SDN_LIST, CONS_LIST) if name in merged]
+        self.missing = tuple(name for name in (SDN_LIST, CONS_LIST) if name not in merged)
         entries = [e for _, g in groups for e in g.values()]
         names: list[tuple[int, str, tuple[str, ...]]] = []
         by_word: dict[str, list[int]] = {}
@@ -147,6 +158,11 @@ class SanctionsIndex:
     def _loaded(task: "asyncio.Task") -> None:
         if not task.cancelled() and task.exception() is not None:
             log.error("sanctions list load failed", exc_info=task.exception())
+
+    async def settle(self, wait: float) -> None:
+        """Wait up to `wait` seconds for a load that is already running, without cancelling it."""
+        if self._task is not None and not self._task.done():
+            await asyncio.wait({self._task}, timeout=wait)
 
     async def start(self, client: httpx.AsyncClient, wait: float) -> None:
         """Begin loading and wait up to `wait` seconds, without cancelling the download if it takes longer."""

@@ -131,6 +131,45 @@ async def test_a_failed_refresh_keeps_the_previous_lists():
     assert (await screen(pl, "Banco Nacional de Cuba")).matched
 
 
+async def test_a_list_that_failed_to_download_is_retried_within_seconds_not_at_the_ttl():
+    sdn_down = {BASE + "SDN.CSV": None, BASE + "ALT.CSV": None}
+    fake = lists_http(**sdn_down)
+    pl = await loaded(fake)
+    assert pl.index.missing == (SDN_LIST,) and pl.index.lists == (CONS_LIST,)
+    fake.routes[BASE + "SDN.CSV"], fake.routes[BASE + "ALT.CSV"] = SDN, ALT       # the source recovers
+    assert not pl.index.stale                                                   # too soon to try again
+    pl.index.attempted_at -= 60
+    assert pl.index.stale
+    r = await screen(pl, "Banco Nacional de Cuba")                              # this request triggers the retry and waits for it
+    assert r.matched and r.lists == [SDN_LIST, CONS_LIST] and pl.index.missing == ()
+
+
+async def test_a_failed_refresh_of_one_list_keeps_that_lists_earlier_entries():
+    fake = lists_http()
+    pl = await loaded(fake)
+    fake.routes[BASE + "SDN.CSV"] = None
+    fake.routes[BASE + "ALT.CSV"] = None
+    fake.routes[BASE + "CONS_PRIM.CSV"] = CONS.replace("ABU TEIR, Mohammed", "NEW PERSON, Added")
+    await pl.index.load(pl.client)
+    assert pl.index.lists == (SDN_LIST, CONS_LIST) and pl.index.missing == ()
+    assert (await screen(pl, "Banco Nacional de Cuba")).matched
+    assert (await screen(pl, "Added New Person")).matched
+
+
+async def test_each_download_is_tried_twice_before_giving_up():
+    calls = []
+
+    def flaky(request):
+        calls.append(request.url.path)
+        return None if len(calls) == 1 else SDN
+    fake = lists_http(**{BASE + "SDN.CSV": flaky})
+    pl = await loaded(fake)
+    assert pl.index.lists == (SDN_LIST, CONS_LIST) and calls.count("/api/PublicationPreview/exports/SDN.CSV") == 2
+    dead = lists_http(**{BASE + "SDN.CSV": None})
+    await loaded(dead)
+    assert dead.urls().count(BASE + "SDN.CSV") == 2
+
+
 async def test_an_empty_name_is_answered_without_a_search():
     r = await screen(await loaded(), "")
     assert r == SanctionsResponse()

@@ -49,6 +49,8 @@ class SanctionsPipeline:
         if not name:
             return SanctionsResponse()
         self.index.ensure_fresh(self.client)
+        if not self.index.ready or self.index.missing:        # a list is still downloading: do not answer from half the data
+            await self.index.settle(max(0.0, min(5.0, s.global_timeout - 2.5)))
         if not self.index.ready:
             # Nothing was checked, so say so: no lists, no score, never a "clear".
             return SanctionsResponse(name=name)
