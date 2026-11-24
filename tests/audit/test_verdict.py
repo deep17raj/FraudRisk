@@ -165,3 +165,25 @@ def test_decisive_names_an_unverifiable_obligation_when_mixed():
 
 def test_decisive_is_safe_on_an_empty_list():
     assert decisive([], "no_obligations") is None
+
+
+# --- how an obligation reads -------------------------------------------------------------
+
+def test_a_deadline_carrying_its_own_preposition_is_not_given_another_one():
+    """The model returns deadlines as phrases; "by within 30 days" would be the giveaway of a blind join."""
+    assert "within 30 days of the Purchase Order -" in ob(Status.UNVERIFIABLE,
+                                                          deadline="within 30 days of the Purchase Order").render()
+    assert " by within" not in ob(Status.UNVERIFIABLE, deadline="within 30 days").render()
+    assert " by on " not in ob(Status.UNVERIFIABLE, duty="terminate", deadline="on 60 days written notice").render()
+    assert "upon completion" in ob(Status.UNVERIFIABLE, deadline="upon completion").render()
+
+
+def test_a_bare_date_still_gets_by():
+    assert "deliver the Goods by 31 March 2027" in ob(Status.MET, deadline="31 March 2027").render()
+    assert "pay rent by the first day of each month" in ob(Status.MET, duty="pay rent",
+                                                           deadline="the first day of each month").render()
+
+
+def test_a_deadline_already_inside_the_duty_is_not_repeated():
+    rendered = ob(Status.MET, duty="pay each invoice within thirty (30) days", deadline="within thirty (30) days").render()
+    assert rendered.count("within thirty (30) days") == 1

@@ -6,8 +6,15 @@ answer, so the enum values here are the only place the four strings are written.
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from enum import Enum
+
+#: A deadline phrase that carries its own preposition, so "by" must not be put in front of it.
+_OPENS_WITH_TIME_WORD = re.compile(
+    r"^(?:within|on|by|before|after|upon|at|in|during|from|until|till|through|throughout|per|each|every|"
+    r"annually|monthly|quarterly|weekly|daily|no\s+later\s+than|not\s+later\s+than|prior\s+to|as\s+of|"
+    r"immediately|promptly|forthwith|once|when|whenever|while|subject\s+to|following)\b", re.I)
 
 
 class Verdict(str, Enum):
@@ -71,7 +78,12 @@ class Obligation:
         # The duty wording often already carries the deadline ("pay within thirty (30) days");
         # appending it again reads as "... within thirty (30) days by within thirty (30) days".
         if self.deadline and self.deadline.strip().lower() not in self.duty.lower():
-            head += f" by {self.deadline}".rstrip(" .;,")
+            deadline = self.deadline.strip()
+            # A deadline is often a phrase that already opens with its own preposition ("within 30
+            # days of the Purchase Order", "on 60 days written notice"); "by" in front of one of
+            # those reads as "deliver the Goods by within 30 days".
+            joiner = "" if _OPENS_WITH_TIME_WORD.match(deadline) else "by "
+            head += f" {joiner}{deadline}".rstrip(" .;,")
         if self.clause_ref and self.ref_verified:
             head += f" ({self.clause_ref})"
         out = f"{head} - {_STATUS_LABEL[self.status]}"
