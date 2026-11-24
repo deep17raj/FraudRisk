@@ -6,6 +6,7 @@ from typing import Optional
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
+from intentkit.ask import sanctions_name
 from intentkit.cache import TTLCache
 from intentkit.pipeline import Req
 from intentkit.request import GENERIC_ALIASES
@@ -44,7 +45,7 @@ class SanctionsPipeline:
 
     async def answer(self, req: Req) -> SanctionsResponse:
         s: Settings = self.settings
-        name = req.get("name", "")[:300]
+        name = sanctions_name(req.get("name", ""))[:300]
         if not name:
             return SanctionsResponse()
         self.index.ensure_fresh(self.client)

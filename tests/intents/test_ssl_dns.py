@@ -155,6 +155,17 @@ async def test_a_ptr_question_about_an_address_queries_its_reverse_name():
     assert {r.url.params["name"] for r in plain.calls} == {"8.8.8.8"}
 
 
+async def test_a_dns_question_without_a_record_type_asks_for_the_type_it_names():
+    def by_type(req):
+        return doh(0, [(15, "10 mx.example.")]) if req.url.params["type"] == "MX" else doh(0)
+    fake = FakeHttp({GOOGLE: by_type, CLOUDFLARE: by_type})
+    pl = DnsPipeline(fast(DnsSettings), fake.client())
+    assert (await pl.answer({"name": "Does example.com have an MX record?"})).has_record is True
+    assert (await pl.answer({"name": "Does example.com have a TXT record?"})).has_record is False
+    assert {r.url.params["type"] for r in fake.calls} == {"MX", "TXT"}
+    assert (await pl.answer({"name": "Does example.com have an MX record?", "record_type": "A"})).has_record is False
+
+
 async def test_nxdomain_and_servfail_are_false():
     for status in (3, 2):
         assert await has_record(FakeHttp({GOOGLE: doh(status), CLOUDFLARE: doh(status)})) is False

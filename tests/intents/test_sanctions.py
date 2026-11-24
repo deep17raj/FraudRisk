@@ -97,6 +97,14 @@ async def test_matches_are_only_listed_above_the_threshold():
     assert not r.matched and r.matches == [] and r.match_score == 0.9
 
 
+async def test_a_question_in_the_name_field_screens_the_party_it_names():
+    pl = await loaded()
+    for question in ("Is Banco Nacional de Cuba on a sanctions list?", "Does Banco Nacional de Cuba appear on the OFAC SDN list?"):
+        r = await screen(pl, question)
+        assert r.matched is True and r.name == "Banco Nacional de Cuba", question
+    assert (await screen(pl, "Is Zzyzx Qwerty on a sanctions list?")).matched is False
+
+
 async def test_the_lists_checked_are_reported():
     r = await screen(await loaded(), "Anyone")
     assert r.lists == [SDN_LIST, CONS_LIST] and r.match_score is not None

@@ -7,6 +7,7 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
+from intentkit.ask import hours_of, is_sentence
 from intentkit.cache import TTLCache
 from intentkit.pipeline import BasePipeline, Req, Result
 from intentkit.service import StrictModel
@@ -96,8 +97,11 @@ class ForecastPipeline(_WeatherBase):
 
     @staticmethod
     def _hours(req: Req) -> int:
+        raw = req.get("window_hours", "")
+        if not raw and is_sentence(req.get("location", "")):      # "...over the next 48 hours?"
+            return hours_of(req.get("location", "")) or 24
         try:
-            return min(240, max(1, int(float(req.get("window_hours", "") or 24))))
+            return min(240, max(1, int(float(raw or 24))))
         except ValueError:
             return 24
 

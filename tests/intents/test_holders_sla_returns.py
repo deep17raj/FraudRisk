@@ -129,6 +129,14 @@ async def test_an_unreadable_token_list_does_not_break_a_named_lookup():
         assert (await holders(fake, "usdc"))["holders_count"] == 5
 
 
+async def test_a_holder_question_in_the_token_field_gives_the_token_and_the_chain():
+    fake = FakeHttp({TOKEN_LIST: UNI_LIST, "https://base.blockscout.com": 403, f"{GOPLUS}/8453": goplus("12145555")})
+    j = await holders(fake, "How many holders does USDC have on Base?", "")
+    assert (j["holders_count"], j["chain"], j["token_symbol"]) == (12145555, "base", "USDC")
+    no_chain = await holders(holders_http({"holders_count": "7", "symbol": "T"}), "How many holders does " + USDT + " have?", "")
+    assert (no_chain["chain"], no_chain["holders_count"]) == ("", None)      # no chain named: nothing is guessed
+
+
 async def test_an_address_in_the_request_is_always_used_as_given():
     fake = holders_http({"holders_count": "7", "symbol": "T"})
     await holders(fake, f"the token {USDT} please")
@@ -178,6 +186,13 @@ async def sla(rows, service, period="", **kw):
     ("all time", "all"), ("overall", "all"), ("last 14 days", None), ("last 90 days", None), ("last 2 weeks", None), ("", None), ("someday", None)])
 def test_only_the_published_windows_are_recognised(text, expected):
     assert published_period(text) == expected
+
+
+async def test_an_sla_question_in_the_service_field_gives_the_service_period_and_target():
+    j = await sla(ROWS, "Did Google meet 99.9% uptime over the last 30 days?")
+    assert (j["uptime_pct"], j["sla_target_pct"], j["compliant"], j["service"]) == (98.79, 99.9, False, "Google")
+    ok = await sla(ROWS, "Is Hacker News meeting its 99% SLA this month?")
+    assert (ok["uptime_pct"], ok["compliant"]) == (100.0, True)
 
 
 async def test_the_published_figure_is_returned_verbatim_for_each_window():

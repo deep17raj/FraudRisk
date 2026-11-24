@@ -23,6 +23,7 @@ from urllib.parse import urlparse
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
+from intentkit.ask import sla_parts
 from intentkit.pipeline import BasePipeline, Req, Result
 from intentkit.service import StrictModel, create_service_app
 from intentkit.text import clip
@@ -117,9 +118,11 @@ class SlaPipeline(BasePipeline):
         service_raw, period_raw = req.get("service", "").strip(), req.get("period", "").strip()
         if not service_raw:
             return Result(self.empty(req, "no service"), degraded=True)
+        asked = service_raw
+        service_raw, period_raw = sla_parts(service_raw, period_raw)
         base = SlaResponse(service=clip(service_raw, 200), period=clip(period_raw, 100))
-        window = published_period(period_raw) or published_period(service_raw)
-        target = target_in(service_raw, period_raw)
+        window = published_period(period_raw) or published_period(asked)
+        target = target_in(asked, period_raw)
         want = _norm(re.sub(_PCT, " ", service_raw))
         reached, match = False, None
         for repo in [r.strip() for r in self.settings.upptime_repos.split(",") if r.strip()]:

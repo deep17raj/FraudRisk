@@ -5,6 +5,7 @@ import re
 from dataclasses import dataclass
 from typing import Optional
 
+from intentkit.ask import place_of
 from intentkit.cache import TTLCache
 from intentkit.upstream import Upstream
 
@@ -22,7 +23,7 @@ class Place:
 
 
 def clean_query(raw: str) -> str:
-    s = (raw or "").strip().strip("?.! ")
+    s = place_of((raw or "").strip()).strip().strip("?.! ")
     s = _LEAD.sub("", s)
     s = re.sub(r",?\s*in degrees (celsius|fahrenheit)$", "", s, flags=re.I)
     s = re.sub(r"\s+(?:right now|today|now|tomorrow)$", "", s, flags=re.I)

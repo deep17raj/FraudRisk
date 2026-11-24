@@ -91,6 +91,21 @@ async def test_forecast_summarises_the_window():
     assert r.condition == "rain" and r.location == "Karachi, Sindh, Pakistan" and r.when.startswith("next 48 hours")
 
 
+async def test_a_forecast_question_in_the_location_field_gives_the_place_and_the_window():
+    fake = weather_http(hourly=HOURLY)
+    r = await ForecastPipeline(fast(Settings), fake.client()).answer(
+        {"location": "What is the weather forecast for Karachi over the next 48 hours?"})
+    assert r.location == "Karachi, Sindh, Pakistan" and r.temp_max_c == 12.5 and r.when.startswith("next 48 hours")
+    assert "name=Karachi" in str(fake.calls[0].url)
+    given = await ForecastPipeline(fast(Settings), weather_http(hourly=HOURLY).client()).answer(
+        {"location": "Will Karachi be warm over the next 48 hours?", "window_hours": "12"})
+    assert given.when.startswith("next 12 hours")
+
+
+async def test_a_temperature_question_in_the_location_field_finds_the_place():
+    assert await temperature(weather_http(), "Will Karachi exceed 40 degrees today?") == 27.0
+
+
 async def test_forecast_window_is_clamped_and_defaults_to_a_day():
     fake = weather_http(hourly=HOURLY)
     pl = ForecastPipeline(fast(Settings), fake.client())

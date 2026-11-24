@@ -103,6 +103,16 @@ async def test_edgar_being_down_is_null_not_zero():
     assert r2.filing_count is None and r2.entity == "Apple Inc"
 
 
+async def test_a_filings_question_in_the_entity_field_gives_the_entity_and_the_period(monkeypatch):
+    import intents.sec_filings.app as mod
+    seen = []
+    monkeypatch.setattr(mod, "parse_period", lambda raw: (seen.append(raw), (date(2025, 11, 22), date(2026, 11, 22)))[1])
+    r = await FilingsPipeline(fast(SecSettings), sec_http().client()).answer(
+        {"entity": "How many SEC filings did Apple make in the last 12 months?", "period": ""})
+    assert r.filing_count == 3 and r.entity == "Apple"
+    assert "in the last 12 months" in seen
+
+
 async def test_an_empty_entity_is_null():
     assert (await filings(sec_http(), "")).filing_count is None
 
@@ -142,6 +152,13 @@ async def test_the_registered_entity_is_returned_with_every_spec_field():
     assert r.model_dump() == {"legal_name": "Apple Inc.", "registration_id": "LLLLLLLLLLLLLLLLLL01", "active": True,
                               "jurisdiction": "US", "registered_address": "1 Main St, Town, US-CA, 12345, US",
                               "incorporated": "1977-01-03"}
+
+
+async def test_a_registry_question_in_the_company_field_finds_the_company():
+    fake = gleif(by_name=[lei_record("Apple Inc.")])
+    r = await lookup(fake, "What is the LEI of Apple Inc.?")
+    assert r.legal_name == "Apple Inc." and r.active is True
+    assert any(c.url.params.get("filter[entity.legalName]") == "Apple Inc." for c in fake.calls)
 
 
 async def test_the_best_name_wins_and_the_jurisdiction_breaks_ties():

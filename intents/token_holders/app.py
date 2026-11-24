@@ -22,6 +22,7 @@ from typing import Optional
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
+from intentkit.ask import capitalized_runs, is_sentence
 from intentkit.pipeline import BasePipeline, Req, Result
 from intentkit.request import GENERIC_ALIASES
 from intentkit.service import StrictModel, create_service_app
@@ -67,6 +68,43 @@ def parse_chain(raw: str) -> Optional[str]:
     return None
 
 
+SKIP_WORDS = {"how", "what", "whats", "many", "much", "holders", "holder", "does", "do", "did", "have", "has", "the", "of", "on",
+              "number", "count", "total", "token", "tokens", "coin", "for", "is", "are", "was", "there", "address",
+              "addresses", "wallet", "wallets", "unique", "distinct", "hold", "holds", "holding", "tell", "me", "show",
+              "give", "please", "which", "who", "i", "in", "and", "a", "an", "can", "you", "find", "get", "check", "erc20",
+              "erc", "contract"}
+
+
+def split_question(token: str, chain: str) -> tuple[str, str]:
+    """(token, chain) from "How many holders does USDC have on Base?"; unchanged when `token` is not a sentence."""
+    if not is_sentence(token):
+        return token, chain
+    m = _ADDRESS.search(token)
+    if m:
+        return m.group(0), chain or token
+    chain_words = {w for name in (*CHAINS, *ALIASES) for w in name.split()} | {"mainnet", "chain", "network", "bnb"}
+    words = re.findall(r"\$?[A-Za-z][A-Za-z0-9]*", token)
+
+    def candidate(w: str, allow_chain_word: bool) -> bool:
+        bare = w.lstrip("$")
+        if bare.lower() in SKIP_WORDS or not (w.startswith("$") or bare[0].isupper() or bare.isupper()):
+            return False
+        return allow_chain_word or bare.lower() not in chain_words
+
+    for allow in (False, True):                  # a ticker such as OP is also a chain alias: only used as a last resort
+        group: list[str] = []
+        for w in [*words, ""]:
+            if w and candidate(w, allow):
+                group.append(w)
+            elif group:
+                break
+        if group:
+            symbol = " ".join(g.lstrip("$") for g in group)
+            rest = re.sub(r"\$?" + r"\s+".join(re.escape(g.lstrip("$")) for g in group), " ", token, count=1)
+            return symbol, chain or rest
+    return token, chain
+
+
 class TokenHoldersResponse(StrictModel):
     """Exactly the response fields of Telegraph's TOKEN_HOLDER_COUNT_GENERAL intent. Nothing else."""
 
@@ -95,7 +133,8 @@ class TokenHoldersPipeline(BasePipeline):
         self._listing_lock = asyncio.Lock()
 
     def key(self, req: Req) -> Optional[str]:
-        t, c = req.get("token", "").strip().lower(), parse_chain(req.get("chain", "")) or req.get("chain", "").strip().lower()
+        token, chain = split_question(req.get("token", "").strip(), req.get("chain", ""))
+        t, c = token.lower(), parse_chain(chain) or chain.strip().lower()
         return f"th:{c}:{t}" if t else None
 
     def empty(self, req: Req, reason: str) -> BaseModel:
@@ -207,8 +246,8 @@ class TokenHoldersPipeline(BasePipeline):
         return None
 
     async def compute(self, req: Req) -> Result:
-        token = req.get("token", "").strip()
-        chain = parse_chain(req.get("chain", ""))
+        token, chain_text = split_question(req.get("token", "").strip(), req.get("chain", ""))
+        chain = parse_chain(chain_text)
         if not token:
             return Result(self.empty(req, "no token"), degraded=True)
         if chain is None:

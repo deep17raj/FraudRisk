@@ -13,6 +13,7 @@ from typing import Any, Optional
 from fastapi import FastAPI
 from pydantic import BaseModel
 
+from intentkit.ask import registry_company
 from intentkit.names import normalize
 from intentkit.pipeline import BasePipeline, Req, Result
 from intentkit.request import GENERIC_ALIASES
@@ -95,7 +96,7 @@ class RegistryPipeline(BasePipeline):
     intent = "CORPORATE_REGISTRY_LOOKUP_GENERAL"
 
     def key(self, req: Req) -> Optional[str]:
-        c = req.get("company", "").strip().casefold()
+        c = registry_company(req.get("company", "").strip()).casefold()
         return f"{c}|{(country_code(req.get('jurisdiction', '')) or '').lower()}" if c else None
 
     def empty(self, req: Req, reason: str) -> BaseModel:
@@ -149,7 +150,7 @@ class RegistryPipeline(BasePipeline):
 
     async def compute(self, req: Req) -> Result:
         s: Settings = self.settings
-        name = req.get("company", "").strip()
+        name = registry_company(req.get("company", "").strip())
         if not name:
             return Result(self.empty(req, "no company"), degraded=True)
         if _LEI.match(name.upper()):

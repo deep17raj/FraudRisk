@@ -14,6 +14,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 from emailsec.names import normalize_domain, normalize_record_type
+from intentkit.ask import dns_type_of, is_sentence
 from intentkit.doh import DnsAnswer, DohClient
 from intentkit.pipeline import BasePipeline, Req, Result
 from intentkit.service import StrictModel
@@ -40,7 +41,8 @@ class DnsPipeline(BasePipeline):
 
     def _parse(self, req: Req) -> Optional[tuple[str, str]]:
         raw = req.get("name", "")
-        rtype = normalize_record_type(req.get("record_type", "") or "A")
+        given = req.get("record_type", "")
+        rtype = normalize_record_type(given or (dns_type_of(raw) if is_sentence(raw) else None) or "A")
         if rtype == "PTR":
             try:    # a PTR question about an address is a reverse lookup of its .arpa name
                 return ipaddress.ip_address(raw.strip().strip("[]")).reverse_pointer, rtype

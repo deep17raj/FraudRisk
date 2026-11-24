@@ -14,6 +14,7 @@ from typing import Optional
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
+from intentkit.ask import filings_parts
 from intentkit.names import normalize
 from intentkit.pipeline import BasePipeline, Req, Result
 from intentkit.request import GENERIC_ALIASES
@@ -82,19 +83,19 @@ class FilingsPipeline(BasePipeline):
 
     # ---- answers -----------------------------------------------------------------------------------
     def key(self, req: Req) -> Optional[str]:
-        e = req.get("entity", "").strip().casefold()
-        start, end = parse_period(req.get("period", ""))
-        return f"{e}|{start}|{end}" if e else None
+        entity, period = filings_parts(req.get("entity", "").strip(), req.get("period", ""))
+        start, end = parse_period(period)
+        return f"{entity.casefold()}|{start}|{end}" if entity else None
 
     def empty(self, req: Req, reason: str) -> BaseModel:
         return FilingsResponse(entity=req.get("entity", "")[:200])
 
     async def compute(self, req: Req) -> Result:
         s: Settings = self.settings
-        entity = req.get("entity", "").strip()
+        entity, period = filings_parts(req.get("entity", "").strip(), req.get("period", ""))
         if not entity:
             return Result(self.empty(req, "no entity"), degraded=True)
-        start, end = parse_period(req.get("period", ""))
+        start, end = parse_period(period)
         reg = await self._resolve(entity)
         if reg is not None:
             res = await self._registrant_filings(entity, reg, start, end)
