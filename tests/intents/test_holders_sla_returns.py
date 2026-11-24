@@ -68,6 +68,67 @@ async def test_a_symbol_picks_the_verified_reputable_token_with_the_biggest_mark
     assert (await holders(holders_http(listing={"items": [{"symbol": "ABC", "address_hash": "0x" + "c" * 40}]}), "usdc"))["holders_count"] is None
 
 
+BASE_USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+GOPLUS = "https://api.gopluslabs.io/api/v1/token_security"
+GECKO = "https://api.geckoterminal.com/api/v2/networks"
+TOKEN_LIST = "https://tokens.uniswap.org"
+UNI_LIST = {"tokens": [
+    {"chainId": 8453, "address": BASE_USDC, "symbol": "USDC", "name": "USD Coin"},
+    {"chainId": 1, "address": "0x" + "a" * 40, "symbol": "DUP", "name": "Dup One"},
+    {"chainId": 1, "address": "0x" + "b" * 40, "symbol": "DUP", "name": "Dup Two"},
+    {"chainId": 1, "address": "not-an-address", "symbol": "BAD", "name": "Bad"}]}
+
+
+def goplus(count, symbol="USDC", address=BASE_USDC):
+    return {"code": 1, "result": {address.lower(): {"holder_count": count, "token_symbol": symbol}}}
+
+
+async def test_goplus_answers_for_a_chain_whose_explorer_is_challenged():
+    fake = FakeHttp({"https://base.blockscout.com": 403, f"{GOPLUS}/8453": goplus("12145555")})
+    j = await holders(fake, BASE_USDC, "base")
+    assert (j["holders_count"], j["token_symbol"]) == (12145555, "USDC")
+
+
+async def test_geckoterminal_answers_when_goplus_cannot():
+    gecko = {"data": {"attributes": {"symbol": "USDC", "holders": {"count": 12652029}}}}
+    fake = FakeHttp({"https://base.blockscout.com": 403, f"{GOPLUS}/8453": None, f"{GECKO}/base/tokens/": gecko})
+    assert (await holders(fake, BASE_USDC, "base"))["holders_count"] == 12652029
+    assert (await holders(FakeHttp({f"{GOPLUS}/8453": {"code": 0}}), BASE_USDC, "base"))["holders_count"] is None
+
+
+async def test_the_primary_source_still_wins_over_goplus():
+    fake = FakeHttp({"https://optimism.blockscout.com/api/v2/tokens": {"holders_count": "10", "symbol": "X"},
+                     f"{GOPLUS}/10": goplus("99")})
+    assert (await holders(fake, USDT, "optimism"))["holders_count"] == 10
+    assert fake.count(GOPLUS) == 0
+
+
+async def test_a_listed_symbol_resolves_through_the_token_list_and_skips_the_name_search():
+    fake = FakeHttp({TOKEN_LIST: UNI_LIST, "https://base.blockscout.com": 403, f"{GOPLUS}/8453": goplus("12145555")})
+    j = await holders(fake, "usdc", "base")
+    assert (j["holders_count"], j["token_symbol"], j["chain"]) == (12145555, "USDC", "base")
+    assert not any(str(c.url).endswith("/api/v2/tokens") or "q=" in str(c.url.query) for c in fake.calls
+                   if "blockscout" in str(c.url))
+
+
+async def test_an_ambiguous_or_unlisted_symbol_falls_back_to_the_blockscout_name_search():
+    listing = {"items": [{"symbol": "DUP", "name": "Dup One", "address_hash": "0x" + "c" * 40, "holders_count": "321",
+                          "circulating_market_cap": "9", "reputation": "ok"}]}
+    fake = holders_http(listing=listing)
+    fake.add(TOKEN_LIST, UNI_LIST)
+    assert (await holders(fake, "dup"))["holders_count"] == 321
+    assert (await holders(fake, "missing"))["holders_count"] is None
+
+
+async def test_an_unreadable_token_list_does_not_break_a_named_lookup():
+    listing = {"items": [{"symbol": "USDC", "name": "USD Coin", "address_hash": "0x" + "a" * 40, "holders_count": "5",
+                          "circulating_market_cap": "9", "reputation": "ok"}]}
+    for rule in (None, {"tokens": "nonsense"}, {}):
+        fake = holders_http(listing=listing)
+        fake.add(TOKEN_LIST, rule)
+        assert (await holders(fake, "usdc"))["holders_count"] == 5
+
+
 async def test_an_address_in_the_request_is_always_used_as_given():
     fake = holders_http({"holders_count": "7", "symbol": "T"})
     await holders(fake, f"the token {USDT} please")

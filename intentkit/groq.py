@@ -30,7 +30,10 @@ log = logging.getLogger("intentkit.groq")
 
 #: Defaults are Groq's general-purpose production chat models at the time of writing. Model ids are retired from
 #: time to time, so they are configurable (GROQ_MODELS, comma separated, best first) and a retired id is skipped.
-DEFAULT_MODELS = "llama-3.3-70b-versatile,llama-3.1-8b-instant"
+DEFAULT_MODELS = "openai/gpt-oss-120b,openai/gpt-oss-20b"
+#: gpt-oss models think before answering and the thinking counts against `max_tokens`, so they get a low reasoning effort
+#: and extra headroom; otherwise a short cap is used up by the thinking and the reply comes back empty.
+REASONING_HEADROOM = 800
 AUTH_COOLDOWN_S = 600.0
 MODEL_GONE_COOLDOWN_S = 3600.0
 DEFAULT_RATE_COOLDOWN_S = 30.0
@@ -136,6 +139,9 @@ class GroqClient:
             body: dict[str, Any] = {
                 "model": model, "temperature": temperature, "max_tokens": max_tokens or s.groq_max_tokens,
                 "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}]}
+            if "gpt-oss" in model and "safeguard" not in model:
+                body["reasoning_effort"] = "low"
+                body["max_tokens"] += REASONING_HEADROOM
             if json_mode:
                 body["response_format"] = {"type": "json_object"}
             timeout = min(s.groq_timeout, left)
@@ -163,7 +169,9 @@ class GroqClient:
                 content = resp.json()["choices"][0]["message"]["content"]
             except Exception:  # noqa: BLE001
                 return None
-            return content.strip() if isinstance(content, str) and content.strip() else None
+            if isinstance(content, str):
+                content = _THINK.sub("", content).strip()      # some models put their reasoning in the reply
+            return content if isinstance(content, str) and content else None
         info = _error_code(resp)
         if code in (401, 403):
             gate.disabled_until = now + AUTH_COOLDOWN_S
@@ -185,6 +193,7 @@ class GroqClient:
 
 
 _FENCE = re.compile(r"^```(?:json)?\s*|\s*```$", re.I)
+_THINK = re.compile(r"<think>.*?</think>", re.S | re.I)
 
 
 def parse_json_object(text: Optional[str]) -> Optional[dict]:

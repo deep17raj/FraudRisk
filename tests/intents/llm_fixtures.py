@@ -73,7 +73,7 @@ class Groq:
         body = json.loads(request.content) if request.content else {}
         self.calls.append({"model": body.get("model"), "json_mode": bool(body.get("response_format")),
                            "messages": body.get("messages"), "auth": request.headers.get("authorization"),
-                           "max_tokens": body.get("max_tokens")})
+                           "max_tokens": body.get("max_tokens"), "reasoning_effort": body.get("reasoning_effort")})
         rule = self.rules[min(len(self.calls) - 1, len(self.rules) - 1)] if self.rules else 500
         return rule(request) if callable(rule) else rule
 

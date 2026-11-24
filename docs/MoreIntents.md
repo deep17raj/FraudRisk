@@ -63,8 +63,11 @@ exactly its response fields for any input. When a value cannot be established it
   guess).
 - **Privacy.** With a key set, the text of a request (and fetched source snippets) is sent to Groq. Telegraph job
   parameters are public, but do not set the key if that is not acceptable.
-- **Model ids.** The defaults (`llama-3.3-70b-versatile`, `llama-3.1-8b-instant`) were not verified against a live key
-  when written, because none was available. Copy the current ids from your Groq console into `GROQ_MODELS`.
+- **Model ids.** Groq retires model ids: the earlier defaults (`llama-3.3-70b-versatile`, `llama-3.1-8b-instant`) were gone
+  by 2026-11-24 (the account's model list no longer had them). The defaults are now `openai/gpt-oss-120b,openai/gpt-oss-20b`,
+  which are sent with a low reasoning effort and extra token headroom. List the current ids with
+  `curl -s https://api.groq.com/openai/v1/models -H "Authorization: Bearer $GROQ_API_KEY"` and set `GROQ_MODELS` to them. A
+  `GROQ_MODELS` set in the Render dashboard overrides the default, so update it there too.
 - **Limits worth knowing.** `QUESTION_ANSWERING_GENERAL` is not built: Telegraph still lists it as `registered` with no
   response format. `EVENT_OUTCOME`'s keyless path depends on Polymarket's public API, which may be unreachable at times
   (the call is capped at 3.5 s and then ignored). OpenAlex's free budget is shared per IP, so `RESEARCH_QUERY` may lean

@@ -6,7 +6,8 @@ import logging
 import httpx
 import pytest
 
-from intentkit.groq import (AUTH_COOLDOWN_S, GroqClient, LlmSettings, _retry_after, parse_json_object, reset_gates)
+from intentkit.groq import (AUTH_COOLDOWN_S, REASONING_HEADROOM, GroqClient, LlmSettings, _retry_after, parse_json_object,
+                            reset_gates)
 from tests.intents.helpers import FakeHttp
 from tests.intents.llm_fixtures import GROQ, Groq, groq_error, groq_reply, transport
 
@@ -46,6 +47,26 @@ async def test_a_good_reply_is_returned_and_sent_with_the_key_json_mode_and_mode
     call = g.calls[0]
     assert call["model"] == "big-model" and call["json_mode"] and call["auth"] == f"Bearer {KEY}" and call["max_tokens"] == 123
     assert [m["role"] for m in call["messages"]] == ["system", "user"]
+
+
+async def test_gpt_oss_models_get_a_low_reasoning_effort_and_token_headroom_others_do_not():
+    g = Groq(groq_reply("x"))
+    c = client_for(g, groq_models="openai/gpt-oss-120b,other-model,openai/gpt-oss-safeguard-20b")
+    assert await c.chat("s", "u", max_tokens=500, budget=5) == "x"
+    assert (g.calls[0]["reasoning_effort"], g.calls[0]["max_tokens"]) == ("low", 500 + REASONING_HEADROOM)
+    g2 = Groq(500, groq_reply("y"))
+    c2 = client_for(g2, groq_models="openai/gpt-oss-120b,other-model")
+    assert await c2.chat("s", "u", max_tokens=500, budget=5) == "y"
+    assert (g2.calls[1]["model"], g2.calls[1]["reasoning_effort"], g2.calls[1]["max_tokens"]) == ("other-model", None, 500)
+    g3 = Groq(groq_reply("z"))
+    assert await client_for(g3, groq_models="openai/gpt-oss-safeguard-20b").chat("s", "u", max_tokens=500, budget=5) == "z"
+    assert (g3.calls[0]["reasoning_effort"], g3.calls[0]["max_tokens"]) == (None, 500)
+
+
+async def test_a_think_block_in_the_reply_is_removed_and_an_all_reasoning_reply_counts_as_empty():
+    c = client_for(Groq(groq_reply('<think>the user {asks} things</think>\n{"a": 1}')))
+    assert await c.chat("s", "u", json_mode=True, budget=5) == '{"a": 1}'
+    assert await client_for(Groq(groq_reply("<think>only thoughts</think>"))).chat("s", "u", budget=5) is None
 
 
 async def test_no_key_means_no_call_at_all():

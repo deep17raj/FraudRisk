@@ -4,15 +4,19 @@ Sources differ in how they count holders (for USDT on Ethereum Blockscout, Ethpl
 so they are never averaged: one primary per chain answers, and the next is used only if it could not.
   1. Blockscout (`/api/v2/tokens/<address>`), the instance of the asked chain;
   2. Ethplorer (Ethereum only, its public `freekey`);
-  3. Routescan, last, because it labels its own count `approx`.
-Some Blockscout instances sit behind a Cloudflare bot challenge for some networks; that is treated as "source
-unavailable" (never worked around), and the answer is `null` when no source can answer. A token given by symbol or name
-is resolved on the chain's Blockscout search to the exact-symbol match that is verified and has the largest market cap,
-so copycat tokens with the same ticker are not picked; an address in the request is always used as given.
+  3. Routescan, because it labels its own count `approx`;
+  4. GoPlus token security, then GeckoTerminal token info, keyless indexes that cover every supported chain.
+Some Blockscout instances sit behind a Cloudflare bot challenge for some networks (Base, Polygon, Arbitrum); that is
+treated as "source unavailable" (never worked around), and the answer is `null` only when no source can answer. A token
+given by symbol or name is first looked up in Uniswap's curated default token list (exactly one match on the chain), which
+is fast and cannot pick a copycat; otherwise the chain's Blockscout search resolves it to the exact-symbol match that is
+verified and has the largest market cap. An address in the request is always used as given.
 """
 from __future__ import annotations
 
+import asyncio
 import re
+import time
 from typing import Optional
 
 from fastapi import FastAPI
@@ -40,6 +44,11 @@ CHAINS: dict[str, dict] = {
     "gnosis": {"blockscout": "https://gnosis.blockscout.com"},
     "avalanche": {"routescan": 43114},
 }
+CHAIN_IDS = {"ethereum": 1, "optimism": 10, "base": 8453, "polygon": 137, "arbitrum": 42161, "gnosis": 100, "avalanche": 43114}
+GECKO_NETWORKS = {"ethereum": "eth", "optimism": "optimism", "base": "base", "polygon": "polygon_pos", "arbitrum": "arbitrum",
+                  "gnosis": "xdai", "avalanche": "avax"}
+TOKEN_LIST = "https://tokens.uniswap.org"      # Uniswap's curated default token list: one entry per symbol per chain
+TOKEN_LIST_TTL = 6 * 3600.0
 ALIASES = {"eth": "ethereum", "mainnet": "ethereum", "ethereum mainnet": "ethereum", "op": "optimism", "op mainnet": "optimism",
            "optimism mainnet": "optimism", "base mainnet": "base", "matic": "polygon", "polygon pos": "polygon",
            "polygon mainnet": "polygon", "arb": "arbitrum", "arbitrum one": "arbitrum", "xdai": "gnosis", "gnosis chain": "gnosis",
@@ -78,6 +87,13 @@ def _count(value) -> Optional[int]:
 class TokenHoldersPipeline(BasePipeline):
     intent = "TOKEN_HOLDER_COUNT_GENERAL"
 
+    def __init__(self, settings, client) -> None:
+        super().__init__(settings, client)
+        self._listing: Optional[dict] = None
+        self._listing_at = 0.0
+        self._listing_ttl = TOKEN_LIST_TTL
+        self._listing_lock = asyncio.Lock()
+
     def key(self, req: Req) -> Optional[str]:
         t, c = req.get("token", "").strip().lower(), parse_chain(req.get("chain", "")) or req.get("chain", "").strip().lower()
         return f"th:{c}:{t}" if t else None
@@ -102,6 +118,68 @@ class TokenHoldersPipeline(BasePipeline):
                                    params={"limit": 1, "count": "true"}, key="routescan")
         n = _count(d.get("count")) if isinstance(d, dict) else None
         return (n, "") if n is not None else None
+
+    async def _goplus(self, chain_id: int, address: str) -> Optional[tuple[int, str]]:
+        d = await self.up.get_json(f"https://api.gopluslabs.io/api/v1/token_security/{chain_id}",
+                                   params={"contract_addresses": address}, key="goplus")
+        res = d.get("result") if isinstance(d, dict) and d.get("code") == 1 else None
+        info = next(iter(res.values()), None) if isinstance(res, dict) and res else None
+        n = _count(info.get("holder_count")) if isinstance(info, dict) else None
+        return (n, str(info.get("token_symbol") or "")) if n is not None else None
+
+    async def _gecko(self, network: str, address: str) -> Optional[tuple[int, str]]:
+        d = await self.up.get_json(f"https://api.geckoterminal.com/api/v2/networks/{network}/tokens/{address}/info",
+                                   key="geckoterminal")
+        attrs = ((d.get("data") or {}).get("attributes") or {}) if isinstance(d, dict) else {}
+        n = _count((attrs.get("holders") or {}).get("count")) if isinstance(attrs, dict) else None
+        return (n, str(attrs.get("symbol") or "")) if n is not None else None
+
+    async def _token_list(self) -> dict:
+        """{chain id: {lower-case symbol or name: [(address, symbol)]}} from the curated list; {} when it cannot be read."""
+        if self._listing is not None and time.monotonic() - self._listing_at < self._listing_ttl:
+            return self._listing
+        async with self._listing_lock:
+            if self._listing is not None and time.monotonic() - self._listing_at < self._listing_ttl:
+                return self._listing
+            d = await self.up.get_json(TOKEN_LIST, timeout=8.0, key="tokenlist")
+            tokens = d.get("tokens") if isinstance(d, dict) else None
+            index: dict = {}
+            for t in tokens if isinstance(tokens, list) else []:
+                if not (isinstance(t, dict) and isinstance(t.get("chainId"), int) and isinstance(t.get("address"), str)
+                        and _ADDRESS.fullmatch(t["address"])):
+                    continue
+                sym = str(t.get("symbol") or "")
+                for label in {sym.lower(), str(t.get("name") or "").lower()} - {""}:
+                    entries = index.setdefault(t["chainId"], {}).setdefault(label, [])
+                    if t["address"].lower() not in {a.lower() for a, _ in entries}:
+                        entries.append((t["address"], sym))
+            self._listing, self._listing_at = index, time.monotonic()
+            self._listing_ttl = TOKEN_LIST_TTL if index else 60.0     # an unreadable list is retried soon
+            return index
+
+    async def start(self) -> None:
+        await self._token_list()
+
+    async def _from_list(self, chain: str, text: str) -> Optional[tuple[str, str]]:
+        """(address, symbol) when the curated list has exactly one token of that symbol or name on the chain."""
+        found = (await self._token_list()).get(CHAIN_IDS[chain], {}).get(text.strip().lower(), [])
+        return found[0] if len(found) == 1 else None
+
+    async def _holders_of(self, chain: str, address: str) -> Optional[tuple[int, str]]:
+        """The count for a known address: the chain's primary source first, the others only if it could not answer."""
+        src = CHAINS[chain]
+        answer: Optional[tuple[int, str]] = None
+        if "blockscout" in src:
+            answer = await self._blockscout(src["blockscout"], address)
+        if answer is None and src.get("ethplorer"):
+            answer = await self._ethplorer(address)
+        if answer is None and "routescan" in src:
+            answer = await self._routescan(src["routescan"], address)
+        if answer is None:
+            answer = await self._goplus(CHAIN_IDS[chain], address)
+        if answer is None:
+            answer = await self._gecko(GECKO_NETWORKS[chain], address)
+        return answer
 
     async def _by_name(self, base: str, text: str) -> Optional[tuple[str, int, str]]:
         """(address, holders, symbol) of a token named by symbol or name, never a look-alike.
@@ -137,22 +215,24 @@ class TokenHoldersPipeline(BasePipeline):
             return Result(self.empty(req, "unsupported chain"), degraded=True)
         src = CHAINS[chain]
         m = _ADDRESS.search(token)
-        address = m.group(0) if m else None
-        if address is None:                                   # a symbol or name: resolve it and read its count at once
+        address, listed_symbol = (m.group(0), "") if m else (None, "")
+        if address is None:                                   # a symbol or name: the curated list resolves it fast
+            listed = await self._from_list(chain, token)
+            if listed is not None:
+                address, listed_symbol = listed
+        if address is None:                                   # not listed: Blockscout's search resolves it and counts at once
             named = await self._by_name(src["blockscout"], token) if "blockscout" in src else None
             if named is None:
                 return Result(self.empty(req, "token not found or no explorer answered"), degraded=True)
             return Result(TokenHoldersResponse(token=clip(token, 200), chain=chain, holders_count=named[1], token_symbol=named[2][:30]))
-        answer: Optional[tuple[int, str]] = None
-        if "blockscout" in src:
-            answer = await self._blockscout(src["blockscout"], address)
-        if answer is None and src.get("ethplorer"):
-            answer = await self._ethplorer(address)
-        if answer is None and "routescan" in src:
-            answer = await self._routescan(src["routescan"], address)
+        answer = await self._holders_of(chain, address)
+        if answer is None and listed_symbol and "blockscout" in src:      # the list's pick had no count: try the name search
+            named = await self._by_name(src["blockscout"], token)
+            answer = (named[1], named[2]) if named is not None else None
         if answer is None:
             return Result(self.empty(req, "no explorer answered"), degraded=True)
-        return Result(TokenHoldersResponse(token=clip(token, 200), chain=chain, holders_count=answer[0], token_symbol=answer[1][:30]))
+        return Result(TokenHoldersResponse(token=clip(token, 200), chain=chain, holders_count=answer[0],
+                                           token_symbol=(answer[1] or listed_symbol)[:30]))
 
 
 def create_app(settings: Optional[Settings] = None, pipeline: Optional[TokenHoldersPipeline] = None) -> FastAPI:
