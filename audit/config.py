@@ -36,6 +36,9 @@ class Settings:
     # Server-side fallback on a safety-classifier refusal. Not available on every platform
     # (Bedrock/Vertex/Foundry use client-side middleware instead), so it is switchable.
     enable_fallbacks: bool = True
+    # --- Groq: the fallback model, used only when there is no Anthropic key or its call fails ---
+    groq_api_key: str = ""
+    groq_models: str = ""              # empty = intentkit.groq's own default list
 
     # --- Input resolution ----------------------------------------------------------------
     # `contract` may be a URL. Fetching one is core, not optional: Telegraph's on-chain
@@ -77,6 +80,8 @@ class Settings:
             effort=e("ANTHROPIC_EFFORT", cls.effort).lower(),
             extraction_mode=e("EXTRACTION_MODE", cls.extraction_mode).lower(),
             enable_fallbacks=_b("ENABLE_LLM_FALLBACKS", cls.enable_fallbacks),
+            groq_api_key=e("GROQ_API_KEY", ""),
+            groq_models=e("GROQ_MODELS", ""),
             enable_url_fetch=_b("ENABLE_URL_FETCH", cls.enable_url_fetch),
             max_fetch_bytes=_i("MAX_FETCH_BYTES", cls.max_fetch_bytes),
             max_redirects=_i("MAX_REDIRECTS", cls.max_redirects),

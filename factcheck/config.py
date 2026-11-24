@@ -27,6 +27,9 @@ class Settings:
     model: str = "claude-haiku-5-5"
     # auto = LLM stance labelling when a key exists, else heuristic. llm | heuristic force it.
     stance_mode: str = "auto"
+    # --- Groq: the fallback model, used only when there is no Anthropic key or its call fails ---
+    groq_api_key: str = ""
+    groq_models: str = ""              # empty = intentkit.groq's own default list
 
     # --- Search providers (all optional; each self-disables when its key is absent) -------
     search_provider: str = "auto"       # auto | tavily | serper | brave | none
@@ -59,6 +62,8 @@ class Settings:
         e = os.environ.get
         return cls(
             anthropic_api_key=e("ANTHROPIC_API_KEY", ""),
+            groq_api_key=e("GROQ_API_KEY", ""),
+            groq_models=e("GROQ_MODELS", ""),
             model=e("ANTHROPIC_MODEL", cls.model),
             stance_mode=e("STANCE_MODE", cls.stance_mode).lower(),
             search_provider=e("SEARCH_PROVIDER", cls.search_provider).lower(),

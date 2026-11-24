@@ -142,3 +142,15 @@ def test_fallback_result_keeps_the_address_and_claims_no_location():
     r = fallback_result("Where is 8.8.8.8?", "global_timeout")
     assert r.ip == "8.8.8.8" and r.latitude is None and r.degraded
     assert fallback_result("nonsense", "x").ip == "nonsense"
+
+
+async def test_a_provider_that_only_knows_the_country_centre_is_not_an_answer():
+    routes = Routes({"get.geojs.io": pl.GEOJS})              # its recorded 8.8.8.8 answer is the US-centre placeholder
+    res = await pipeline(routes, soft_deadline=1.0).locate("8.8.8.8")
+    assert (res.latitude, res.longitude) == (None, None) and res.degraded
+
+
+async def test_a_placeholder_does_not_stop_the_wait_for_the_providers_that_know_better():
+    slow = {**pl.ALL_BY_HOST, "ipinfo.io": (pl.IPINFO, 0.3), "ipwho.is": (pl.IPWHO, 0.3)}
+    res = await pipeline(Routes(slow), soft_deadline=0.1).locate("8.8.8.8")     # geojs answers first, with the placeholder
+    assert res.latitude is not None and 37.3 < res.latitude < 38.1 and "geojs" not in res.providers

@@ -17,6 +17,16 @@ from typing import Mapping, Optional, Sequence
 from .models import GeoFix
 
 
+#: Coordinates a database reports when it knows only the country (or nothing): the middle of the contiguous United States
+#: (MaxMind's default for an address it can place no closer than "United States") and the null island. Neither is a
+#: location of the address, so they are dropped rather than clustered or averaged into a real answer.
+PLACEHOLDER_POINTS = ((37.751, -97.822), (0.0, 0.0))
+
+
+def is_placeholder(fix: GeoFix) -> bool:
+    return any(abs(fix.latitude - lat) < 0.01 and abs(fix.longitude - lon) < 0.01 for lat, lon in PLACEHOLDER_POINTS)
+
+
 def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     p1, p2 = math.radians(lat1), math.radians(lat2)
     dphi, dlmb = p2 - p1, math.radians(lon2 - lon1)

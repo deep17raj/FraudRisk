@@ -38,6 +38,9 @@ class Settings:
     # Server-side fallback on a safety-classifier refusal. Not available on every platform
     # (Bedrock/Vertex/Foundry use client-side middleware instead), so it is switchable.
     enable_fallbacks: bool = True
+    # --- Groq: the fallback model, used only when there is no Anthropic key or its call fails ---
+    groq_api_key: str = ""
+    groq_models: str = ""              # empty = intentkit.groq's own default list
 
     # --- Signal providers (all optional; each self-disables without its key) ---------------
     ip_provider: str = "auto"          # auto | ipwho | ipinfo | ip2location | none
@@ -74,6 +77,8 @@ class Settings:
             effort=e("ANTHROPIC_EFFORT", cls.effort).lower(),
             reasoning_mode=e("REASONING_MODE", cls.reasoning_mode).lower(),
             enable_fallbacks=_b("ENABLE_LLM_FALLBACKS", cls.enable_fallbacks),
+            groq_api_key=e("GROQ_API_KEY", ""),
+            groq_models=e("GROQ_MODELS", ""),
             ip_provider=e("IP_PROVIDER", cls.ip_provider).lower(),
             ipinfo_token=e("IPINFO_TOKEN", ""),
             ip2location_key=e("IP2LOCATION_KEY", ""),

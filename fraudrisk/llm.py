@@ -18,6 +18,9 @@ import asyncio
 import json
 import logging
 import re
+import time
+
+from intentkit.model_fallback import GroqFallback
 
 from .config import Settings
 
@@ -50,10 +53,11 @@ class LLMClient:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
         self._client = None
+        self.groq = GroqFallback(settings.groq_api_key, settings.groq_models)
 
     @property
     def available(self) -> bool:
-        return bool(self.settings.anthropic_api_key)
+        return bool(self.settings.anthropic_api_key) or self.groq.available
 
     def _get(self):
         if self._client is None:
@@ -69,8 +73,29 @@ class LLMClient:
     async def complete_json(self, system: str, user: str, schema: dict, *,
                             max_tokens: int, timeout: float) -> dict:
         """One call, JSON-schema constrained. Raises LLMUnavailable on any failure."""
-        if not self.available:
-            raise LLMUnavailable("ANTHROPIC_API_KEY not set")
+        if not self.settings.anthropic_api_key:
+            return await self._groq_json(system, user, max_tokens=max_tokens, timeout=timeout)
+        deadline = time.monotonic() + timeout
+        try:
+            return await self._anthropic_json(system, user, schema, max_tokens=max_tokens, timeout=timeout)
+        except Exception as exc:  # noqa: BLE001 - any Anthropic failure may still fall to Groq
+            if not self.groq.available:
+                raise
+            left = deadline - time.monotonic()
+            log.warning("anthropic reasoning failed (%s: %s); trying groq with %.1fs left",
+                        type(exc).__name__, exc, left)
+            return await self._groq_json(system, user, max_tokens=max_tokens, timeout=left)
+
+    async def _groq_json(self, system: str, user: str, *, max_tokens: int, timeout: float) -> dict:
+        """Groq has no structured-output mode, so the shape is asked for in the prompt instead."""
+        data = await self.groq.complete_json(system, user + _JSON_INSTRUCTION,
+                                             max_tokens=max_tokens, timeout=timeout)
+        if not isinstance(data, dict):
+            raise LLMUnavailable("no model answered (no Anthropic key; groq unavailable or unparseable)")
+        return data
+
+    async def _anthropic_json(self, system: str, user: str, schema: dict, *,
+                              max_tokens: int, timeout: float) -> dict:
         import anthropic
 
         client = self._get()

@@ -70,3 +70,9 @@ def test_the_radius_decides_whether_two_fixes_agree():
     near, far = fix("a", 10.0, 10.0), fix("b", 11.5, 10.0)   # ~167 km apart
     assert merge([near, far], 200.0, {"a": 0, "b": 1}).support == 2
     assert merge([near, far], 100.0, {"a": 0, "b": 1}).support == 1
+
+
+def test_country_centre_and_null_island_coordinates_are_placeholders_not_locations():
+    from ipgeo.consensus import is_placeholder
+    assert is_placeholder(fix("geojs", 37.751, -97.822)) and is_placeholder(fix("x", 0.0, 0.0))
+    assert not is_placeholder(fix("ipinfo", 37.422, -122.085)) and not is_placeholder(fix("x", 37.9, -97.8))

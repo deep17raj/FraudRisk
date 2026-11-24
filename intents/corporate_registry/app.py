@@ -77,6 +77,52 @@ class RegistryResponse(StrictModel):
     incorporated: str = ""
 
 
+#: Names that belong to a fund, share class or depositary receipt rather than to the operating company.
+_FUND = re.compile(r"\b(fund|funds|etf|etfs|trust|portfolio|sicav|oeic|adr|adrhedged|unhedged|sub-?fund|compartment|"
+                   r"series|index|sicav-?sif|fcp|ucits|lp)\b", re.I)
+
+
+def entity_names(e: dict) -> list[str]:
+    """Every name GLEIF holds for an entity: its legal name, its other names and its transliterations."""
+    out = [((e.get("legalName") or {}).get("name")) or ""]
+    for key in ("otherNames", "transliteratedOtherNames"):
+        for other in e.get(key) or []:
+            if isinstance(other, dict) and other.get("name"):
+                out.append(str(other["name"]))
+    return [n for n in out if n]
+
+
+def _mostly_latin(text: str) -> bool:
+    letters = [c for c in text if c.isalpha()]
+    return bool(letters) and sum(1 for c in letters if c.isascii()) * 10 >= len(letters) * 6
+
+
+def display_legal_name(e: dict) -> str:
+    """The entity's legal name, in Latin script when GLEIF publishes one.
+
+    A Korean or Japanese registrant's `legalName` is in its own script. GLEIF types the English form as
+    ALTERNATIVE_LANGUAGE_LEGAL_NAME, and every `transliteratedOtherNames` entry is a transliterated legal
+    name, so both are that entity's legal name rather than a trading name. A trading or operating name is
+    never used here.
+    """
+    primary = ((e.get("legalName") or {}).get("name")) or ""
+    if not primary or _mostly_latin(primary):
+        return primary
+    for other in e.get("otherNames") or []:
+        name = (other or {}).get("name") or ""
+        if name and _mostly_latin(name) and other.get("type") == "ALTERNATIVE_LANGUAGE_LEGAL_NAME":
+            return name
+    for other in e.get("transliteratedOtherNames") or []:
+        name = (other or {}).get("name") or ""
+        if name and _mostly_latin(name):
+            return name
+    return primary
+
+
+def country_of(e: dict) -> str:
+    return ((e.get("legalAddress") or {}).get("country") or (e.get("jurisdiction") or "")[:2]).upper()
+
+
 def _address(a: dict) -> str:
     parts = [*(a.get("addressLines") or []), a.get("city"), a.get("region"), a.get("postalCode"), a.get("country")]
     return ", ".join(str(p) for p in parts if p)
@@ -86,7 +132,7 @@ def _record_to_response(rec: dict) -> RegistryResponse:
     at = rec.get("attributes") or {}
     e = at.get("entity") or {}
     return RegistryResponse(
-        legal_name=((e.get("legalName") or {}).get("name") or "")[:300], registration_id=at.get("lei") or "",
+        legal_name=display_legal_name(e)[:300], registration_id=at.get("lei") or "",
         active=e.get("status") == "ACTIVE", jurisdiction=e.get("jurisdiction") or "",
         registered_address=_address(e.get("legalAddress") or {})[:500],
         incorporated=(e.get("creationDate") or "")[:10])
@@ -115,16 +161,26 @@ class RegistryPipeline(BasePipeline):
                 out.append(f"{base} {m.group(2).strip('.').title()}.")
         return list(dict.fromkeys(out))[:4]
 
-    async def _query(self, param: str, name: str) -> Optional[list[dict]]:
-        d = await self.up.get_json(API, params={param: name, "page[size]": 20})
+    async def _query(self, param: str, name: str, country: Optional[str] = None) -> Optional[list[dict]]:
+        params: dict[str, object] = {param: name, "page[size]": 20}
+        if country:
+            params["filter[entity.legalAddress.country]"] = country
+        d = await self.up.get_json(API, params=params)
         return [r for r in d.get("data") or [] if isinstance(r, dict)] if isinstance(d, dict) else None
 
     async def _search(self, name: str, want: Optional[str], min_score: float) -> Optional[list[dict]]:
         """Candidates from GLEIF's name filter (several spellings at once), then its full-text filter.
 
+        With a jurisdiction, a country-scoped full-text query runs too: an entity registered under its
+        local-script name (Samsung as 'Samsung Electronics' in Korean) is unreachable by an English name
+        filter, but is the leading full-text hit within its own country.
+
         None when GLEIF could not be reached at all.
         """
-        batches = await asyncio.gather(*(self._query("filter[entity.legalName]", v) for v in self._variants(name)))
+        calls = [self._query("filter[entity.legalName]", v) for v in self._variants(name)]
+        if want:
+            calls.append(self._query("filter[fulltext]", name, want))
+        batches = await asyncio.gather(*calls)
         reached = any(b is not None for b in batches)
         got = [r for b in batches if b for r in b]
         if not any(self._rank(name, want, r) >= min_score for r in got):
@@ -135,14 +191,19 @@ class RegistryPipeline(BasePipeline):
 
     def _rank(self, name: str, want: Optional[str], rec: dict) -> float:
         e = (rec.get("attributes") or {}).get("entity") or {}
-        cand = normalize(((e.get("legalName") or {}).get("name")) or "")
         q = normalize(name)
-        score = 1.0 if q == cand else (0.9 if len(q) >= 2 and set(q) < set(cand) and len(cand) <= len(q) + 2 else 0.0)
-        if score == 0.0 and q and cand:
-            from difflib import SequenceMatcher
-            score = SequenceMatcher(None, " ".join(q), " ".join(cand)).ratio()
-        country = ((e.get("legalAddress") or {}).get("country") or (e.get("jurisdiction") or "")[:2]).upper()
-        if want and country == want:
+        score = 0.0
+        for cand_name in entity_names(e):          # the English name is often an "other name", not the legal one
+            cand = normalize(cand_name)
+            s = 1.0 if q == cand else (0.9 if len(q) >= 2 and set(q) < set(cand) and len(cand) <= len(q) + 2 else 0.0)
+            if s == 0.0 and q and cand:
+                from difflib import SequenceMatcher
+                s = SequenceMatcher(None, " ".join(q), " ".join(cand)).ratio()
+            score = max(score, s)
+        legal_name = ((e.get("legalName") or {}).get("name")) or ""
+        if _FUND.search(legal_name) and not _FUND.search(name):
+            score -= 0.3                           # a fund, ETF or ADR share class is not the company itself
+        if want and country_of(e) == want:
             score += 0.05
         if e.get("status") == "ACTIVE":
             score += 0.02
@@ -163,7 +224,15 @@ class RegistryPipeline(BasePipeline):
         cands = await self._search(name, want, s.min_score)
         if cands is None:
             return Result(self.empty(req, "GLEIF unreachable"), degraded=True)
-        ranked = sorted(((self._rank(name, want, r), r) for r in cands), key=lambda t: -t[0])
+        scored = [(self._rank(name, want, r), r) for r in cands]
+        if want:
+            # A named jurisdiction decides between entities of the same name ("Goldman Sachs" is an operating
+            # company in the US and an unrelated LLC in Mauritius). Only when nothing there fits does the
+            # search widen again, so a group registered elsewhere than asked is still found.
+            own = [t for t in scored
+                   if t[0] >= s.min_score and country_of((t[1].get("attributes") or {}).get("entity") or {}) == want]
+            scored = own or scored
+        ranked = sorted(scored, key=lambda t: -t[0])
         if not ranked or ranked[0][0] < s.min_score:
             return Result(self.empty(req, "no matching entity"))
         return Result(_record_to_response(ranked[0][1]))

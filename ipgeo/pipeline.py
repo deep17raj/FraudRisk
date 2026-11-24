@@ -18,7 +18,7 @@ from intentkit.cache import TTLCache
 from intentkit.resilience import CircuitBreaker, call_with_retry
 
 from .config import Settings
-from .consensus import merge
+from .consensus import is_placeholder, merge
 from .models import GeoFix, GeoResult
 from .parse import extract_ip
 from .providers import PROVIDERS, Provider, select_providers
@@ -90,7 +90,7 @@ class IpGeoPipeline:
                     break
                 for task in done:
                     fix = task.result()
-                    if fix is not None:
+                    if fix is not None and not is_placeholder(fix):
                         fixes.append(fix)
         finally:
             for task in pending:

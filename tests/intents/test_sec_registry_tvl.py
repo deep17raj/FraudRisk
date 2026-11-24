@@ -124,18 +124,27 @@ def test_sec_http_contract():
 
 
 # ---- corporate registry -----------------------------------------------------------------------------------
-def lei_record(name, lei="L" * 18 + "01", country="US", status="ACTIVE", jurisdiction=None, created="1977-01-03T00:00:00Z"):
-    return {"attributes": {"lei": lei, "entity": {
-        "legalName": {"name": name}, "jurisdiction": jurisdiction or country, "status": status, "creationDate": created,
-        "legalAddress": {"addressLines": ["1 Main St"], "city": "Town", "region": f"{country}-CA", "postalCode": "12345", "country": country}}}}
+def lei_record(name, lei="L" * 18 + "01", country="US", status="ACTIVE", jurisdiction=None, created="1977-01-03T00:00:00Z",
+               others=(), translit=()):
+    entity = {"legalName": {"name": name}, "jurisdiction": jurisdiction or country, "status": status, "creationDate": created,
+              "legalAddress": {"addressLines": ["1 Main St"], "city": "Town", "region": f"{country}-CA",
+                               "postalCode": "12345", "country": country}}
+    if others:
+        entity["otherNames"] = [{"name": n, "type": t} for n, t in others]
+    if translit:
+        entity["transliteratedOtherNames"] = [{"name": n} for n in translit]
+    return {"attributes": {"lei": lei, "entity": entity}}
 
 
-def gleif(by_name=None, fulltext=None, lei=None):
+def gleif(by_name=None, fulltext=None, lei=None, in_country=None):
     def rule(request):
         p = request.url.params
         if request.url.path.endswith("/lei-records") or request.url.path.endswith("lei-records/"):
+            country = p.get("filter[entity.legalAddress.country]")
             if "filter[entity.legalName]" in p:
                 v = by_name(p["filter[entity.legalName]"]) if callable(by_name) else by_name
+            elif country and in_country is not None:
+                v = in_country.get(country)
             else:
                 v = fulltext
             return None if v is None else {"data": v}
@@ -159,6 +168,50 @@ async def test_a_registry_question_in_the_company_field_finds_the_company():
     r = await lookup(fake, "What is the LEI of Apple Inc.?")
     assert r.legal_name == "Apple Inc." and r.active is True
     assert any(c.url.params.get("filter[entity.legalName]") == "Apple Inc." for c in fake.calls)
+
+
+async def test_an_entity_registered_under_its_own_script_is_found_by_its_english_legal_name():
+    korean = lei_record("삼성전자(주)", lei="K" * 18 + "01", country="KR",
+                        others=[("SAMSUNG ELECTRONICS CO., LTD", "ALTERNATIVE_LANGUAGE_LEGAL_NAME")])
+    german = lei_record("SAMSUNG ELECTRONICS GMBH", lei="D" * 18 + "01", country="DE")
+    fake = gleif(by_name=[german], in_country={"KR": [korean]})
+    r = await lookup(fake, "Samsung Electronics", "South Korea")
+    assert r.registration_id == "K" * 18 + "01" and r.jurisdiction == "KR"
+    assert r.legal_name == "SAMSUNG ELECTRONICS CO., LTD"      # reported in Latin script, not 삼성전자(주)
+
+
+async def test_a_transliterated_legal_name_is_used_when_there_is_no_english_one():
+    rec = lei_record("トヨタ自動車株式会社", country="JP", translit=["TOYOTA JIDOSHA KABUSHIKI KAISHA"],
+                     others=[("Toyota Motor Corporation", "ALTERNATIVE_LANGUAGE_LEGAL_NAME")])
+    assert (await lookup(gleif(by_name=[rec]), "Toyota Motor Corporation", "Japan")).legal_name == "Toyota Motor Corporation"
+    only_translit = lei_record("トヨタ自動車株式会社", country="JP", translit=["TOYOTA JIDOSHA KABUSHIKI KAISHA"])
+    r = await lookup(gleif(in_country={"JP": [only_translit]}), "Toyota Jidosha Kabushiki Kaisha", "Japan")
+    assert r.legal_name == "TOYOTA JIDOSHA KABUSHIKI KAISHA"
+
+
+async def test_a_trading_name_is_never_reported_as_the_legal_name():
+    rec = lei_record("株式会社セブン&アイ", country="JP", others=[("7-Eleven", "TRADING_OR_OPERATING_NAME")])
+    assert (await lookup(gleif(by_name=[rec]), "株式会社セブン&アイ", "Japan")).legal_name == "株式会社セブン&アイ"
+
+
+async def test_a_fund_or_depositary_receipt_never_outranks_the_operating_company():
+    fund = lei_record("Goldman Sachs ETF Trust", lei="F" * 18 + "01")
+    adr = lei_record("TOYOTA MOTOR CORPORATION ADRHEDGED", lei="A" * 18 + "01")
+    company = lei_record("The Goldman Sachs Group, Inc.", lei="G" * 18 + "01")
+    r = await lookup(gleif(by_name=[fund, company]), "Goldman Sachs", "US")
+    assert r.registration_id == "G" * 18 + "01"
+    assert (await lookup(gleif(by_name=[adr]), "Toyota Motor", "US")).registration_id == ""
+    asked = await lookup(gleif(by_name=[fund]), "Goldman Sachs ETF Trust", "US")      # a fund that was asked for
+    assert asked.registration_id == "F" * 18 + "01"
+
+
+async def test_a_named_jurisdiction_decides_but_still_falls_back_when_nothing_there_fits():
+    lux = lei_record("Spotify Technology S.A.", lei="L" * 18 + "99", country="LU")
+    assert (await lookup(gleif(by_name=[lux]), "Spotify Technology", "Sweden")).registration_id == "L" * 18 + "99"
+    mauritius = lei_record("Acme Holdings", lei="M" * 18 + "01", country="MU")
+    delaware = lei_record("Acme Holdings", lei="U" * 18 + "01", country="US")
+    r = await lookup(gleif(by_name=[mauritius, delaware]), "Acme Holdings", "US")
+    assert r.registration_id == "U" * 18 + "01"
 
 
 async def test_the_best_name_wins_and_the_jurisdiction_breaks_ties():
