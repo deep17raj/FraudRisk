@@ -46,6 +46,35 @@ async def test_the_nvd_primary_score_is_preferred_to_a_secondary_one():
     assert info.references == ("https://a.test/1", "https://a.test/2")
 
 
+def nvd_without_primary(*entries):
+    """A record whose metrics are all Secondary: (source, score) pairs, in the order NVD happens to list them."""
+    metrics = {"cvssMetricV31": [{"source": src, "type": "Secondary", "cvssData": {"baseScore": score}}
+                                 for src, score in entries]}
+    return {"totalResults": 1, "vulnerabilities": [{"cve": {
+        "id": "CVE-2020-1472", "published": "2020-08-17T19:15:00.000",
+        "descriptions": [{"lang": "en", "value": "Netlogon elevation of privilege."}],
+        "metrics": metrics, "references": []}}]}
+
+
+async def test_with_no_primary_score_the_one_nvd_itself_assigned_wins_over_a_vendors():
+    """CVE-2020-1472 (Zerologon): Microsoft's 5.5 is listed first, NVD's own assessment is 10.0 and is what NVD shows."""
+    fake = FakeHttp({NVD: nvd_without_primary(("secure@microsoft.com", 5.5), ("nvd@nist.gov", 10.0))})
+    info = await lookup(up(fake), "CVE-2020-1472")
+    assert (info.score, info.severity) == (10.0, "CRITICAL")
+
+
+async def test_with_no_primary_and_no_nvd_authored_score_the_first_listed_is_used():
+    fake = FakeHttp({NVD: nvd_without_primary(("secure@microsoft.com", 8.8), ("cna@example.com", 7.0))})
+    assert (await lookup(up(fake), "CVE-2021-0001")).score == 8.8
+
+
+async def test_a_primary_score_still_beats_an_nvd_authored_secondary_one():
+    metrics = nvd_without_primary(("nvd@nist.gov", 4.0))
+    metrics["vulnerabilities"][0]["cve"]["metrics"]["cvssMetricV31"].insert(
+        0, {"source": "x@y.z", "type": "Primary", "cvssData": {"baseScore": 6.1}})
+    assert (await lookup(up(FakeHttp({NVD: metrics})), "CVE-2021-0002")).score == 6.1
+
+
 async def test_older_cvss_versions_are_used_only_when_v31_is_absent():
     assert (await lookup(up(FakeHttp({NVD: nvd(None, None, v30=7.0, v2=5.0)})), "CVE-2000-0001")).score == 7.0
     assert (await lookup(up(FakeHttp({NVD: nvd(None, None, v2=5.0)})), "CVE-2000-0002")).score == 5.0

@@ -106,6 +106,39 @@ async def test_a_temperature_question_in_the_location_field_finds_the_place():
     assert await temperature(weather_http(), "Will Karachi exceed 40 degrees today?") == 27.0
 
 
+def hourly(codes):
+    return {"hourly": {"temperature_2m": [10.0] * len(codes), "precipitation_probability": [0] * len(codes),
+                       "weather_code": codes}}
+
+
+async def condition_for(codes):
+    pl = ForecastPipeline(fast(Settings), weather_http(hourly=hourly(codes)).client())
+    return (await pl.answer({"location": "Karachi"})).condition
+
+
+async def test_the_condition_is_what_most_of_the_window_looks_like_not_its_worst_hour():
+    assert await condition_for([0] * 20 + [45] * 4) == "clear sky"           # one foggy morning in a clear day
+    assert await condition_for([3] * 15 + [51] * 5 + [0] * 4) == "overcast"
+    assert await condition_for([71] * 10 + [3] * 14) == "overcast"
+
+
+async def test_a_tie_between_conditions_goes_to_the_more_severe():
+    assert await condition_for([0, 0, 61, 61]) == "light rain"
+    assert await condition_for([3, 3, 3, 63, 63, 63]) == "rain"
+
+
+async def test_a_thunderstorm_is_never_hidden_by_a_calmer_dominant_condition():
+    assert await condition_for([3] * 20 + [95] * 2) == "overcast, with a risk of thunderstorm"
+    assert await condition_for([95] * 10 + [3] * 2) == "thunderstorm"            # already the dominant condition
+    assert await condition_for([99] * 3 + [96] * 3 + [3]) == "thunderstorm with heavy hail"
+
+
+async def test_codes_outside_the_table_are_ignored_and_an_empty_window_has_no_condition():
+    assert await condition_for([0, 0, 0, 1234]) == "clear sky"
+    r = await ForecastPipeline(fast(Settings), weather_http(hourly=hourly([1234])).client()).answer({"location": "Karachi"})
+    assert r.condition == "" and r.temp_max_c == 10.0
+
+
 async def test_forecast_window_is_clamped_and_defaults_to_a_day():
     fake = weather_http(hourly=HOURLY)
     pl = ForecastPipeline(fast(Settings), fake.client())

@@ -40,6 +40,10 @@ class CveInfo:
     source: str = ""
 
 
+#: The source identifier NVD puts on the metrics its own analysts scored.
+NVD_SOURCE = "nvd@nist.gov"
+
+
 def _score(v: Any) -> Optional[float]:
     return float(v) if isinstance(v, (int, float)) and not isinstance(v, bool) and 0 <= v <= 10 else None
 
@@ -53,7 +57,11 @@ def _from_nvd(cve_id: str, body: Any) -> Optional[CveInfo]:
     score = None
     for key in ("cvssMetricV31", "cvssMetricV30", "cvssMetricV2"):
         entries = [e for e in (metrics.get(key) or []) if isinstance(e, dict)]
-        entries.sort(key=lambda e: e.get("type") != "Primary")        # NVD's own (primary) score first
+        # NVD's own assessment first. Some records carry no Primary metric at all and several
+        # Secondary ones instead: CVE-2020-1472 (Zerologon) holds Microsoft's 5.5, scored for local
+        # privilege escalation, next to NVD's 10.0, and 10.0 is the score NVD publishes for it. So
+        # fall back to the entry NVD itself authored rather than to whichever came first.
+        entries.sort(key=lambda e: (e.get("type") != "Primary", e.get("source") != NVD_SOURCE))
         for e in entries:
             score = _score((e.get("cvssData") or {}).get("baseScore"))
             if score is not None:

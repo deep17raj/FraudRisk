@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import math
+from collections import Counter
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -26,6 +27,26 @@ WMO = {0: "clear sky", 1: "mainly clear", 2: "partly cloudy", 3: "overcast", 45:
        81: "rain showers", 82: "violent rain showers", 85: "snow showers", 86: "heavy snow showers",
        95: "thunderstorm", 96: "thunderstorm with hail", 99: "thunderstorm with heavy hail"}
 TEMP = dict(ge=-90, le=60, allow_inf_nan=False)
+THUNDER = frozenset({95, 96, 99})
+
+
+def window_condition(codes: list[int]) -> str:
+    """The condition that describes most of the window, in plain words.
+
+    A week of clear weather with one foggy hour is "clear sky", not "fog": the single worst hour says little about
+    the window, and the peak chance of rain already has its own field. A tie goes to the more severe code (codes
+    rise with severity within each family). The one exception is a thunderstorm, which is worth knowing about even
+    when it is brief, so it is added as a risk to a different dominant condition.
+    """
+    if not codes:
+        return ""
+    counts = Counter(codes)
+    top = max(counts.values())
+    dominant = max(c for c, n in counts.items() if n == top)
+    label = WMO[dominant]
+    if dominant not in THUNDER and any(c in THUNDER for c in codes):
+        label += ", with a risk of thunderstorm"
+    return label
 
 
 class TemperatureResponse(StrictModel):
@@ -128,10 +149,9 @@ class ForecastPipeline(_WeatherBase):
         codes = [int(c) for c in (h.get("weather_code") or []) if isinstance(c, (int, float)) and int(c) in WMO]
         if not temps:
             return Result(self.empty(req, "forecast had no temperatures"), degraded=True)
-        worst = max(codes) if codes else None            # codes rise with severity within each family
         start = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:00 UTC")
         return Result(ForecastResponse(
             location=place.label, when=f"next {hours} hours from {start}",
             temp_max_c=round(max(temps), 1), temp_min_c=round(min(temps), 1),
             precipitation_probability_pct=round(max(probs), 1) if probs else None,
-            condition=WMO[worst] if worst is not None else ""))
+            condition=window_condition(codes)))
