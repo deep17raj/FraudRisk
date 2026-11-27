@@ -139,6 +139,53 @@ async def test_codes_outside_the_table_are_ignored_and_an_empty_window_has_no_co
     assert r.condition == "" and r.temp_max_c == 10.0
 
 
+def met_series(hours=60, base=10.0, symbol="cloudy_day", thunder_at=None):
+    from datetime import datetime, timedelta, timezone
+    start = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0)
+    points = []
+    for i in range(hours):
+        sym = "lightrainandthunder" if thunder_at == i else symbol
+        points.append({"time": (start + timedelta(hours=i)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                       "data": {"instant": {"details": {"air_temperature": base + (i % 5)}},
+                                "next_1_hours": {"summary": {"symbol_code": sym}, "details": {"precipitation_amount": 0.0}}}})
+    return {"properties": {"timeseries": points}}
+
+
+async def test_met_norway_answers_the_forecast_when_open_meteo_cannot():
+    fake = weather_http(hourly=None, met=met_series())
+    r = await ForecastPipeline(fast(Settings), fake.client()).answer({"location": "Karachi", "window_hours": "24"})
+    assert (r.temp_max_c, r.temp_min_c) == (14.0, 10.0) and r.condition == "overcast"
+    assert r.location == "Karachi, Sindh, Pakistan" and r.when.startswith("next 24 hours")
+    assert r.precipitation_probability_pct is None            # MET's compact forecast has none, and none is invented
+
+
+async def test_met_forecast_covers_only_the_asked_window_and_flags_a_thunderstorm():
+    short = await ForecastPipeline(fast(Settings), weather_http(hourly=None, met=met_series(60, base=0.0)).client()).answer(
+        {"location": "Karachi", "window_hours": "3"})
+    assert (short.temp_max_c, short.temp_min_c) == (2.0, 0.0)           # three hours: 0, 1, 2
+    stormy = await ForecastPipeline(fast(Settings), weather_http(hourly=None, met=met_series(thunder_at=2)).client()).answer(
+        {"location": "Karachi", "window_hours": "24"})
+    assert stormy.condition == "overcast, with a risk of thunderstorm"
+
+
+async def test_open_meteo_is_still_preferred_when_it_answers():
+    fake = weather_http(hourly=HOURLY, met=met_series())
+    r = await ForecastPipeline(fast(Settings), fake.client()).answer({"location": "Karachi", "window_hours": "48"})
+    assert r.temp_max_c == 12.5 and fake.count(MET_NO) == 0
+
+
+async def test_both_sources_down_is_an_honest_empty_forecast():
+    r = await ForecastPipeline(fast(Settings), weather_http(hourly=None, met=None).client()).answer({"location": "Karachi"})
+    assert r.temp_max_c is None and r.condition == "" and r.location == "Karachi"
+
+
+def test_met_symbols_map_to_conditions():
+    from intents.weather.pipelines import met_symbol_code
+    assert [met_symbol_code(x) for x in ("clearsky_day", "partlycloudy_night", "heavyrain", "lightsnowshowers_day")] == [0, 2, 65, 85]
+    assert met_symbol_code("heavyrainandthunder") == 95 and met_symbol_code("lightssleetshowersandthunder_day") == 95
+    assert met_symbol_code("nonsense") is None and met_symbol_code(None) is None and met_symbol_code("") is None
+
+
 async def test_forecast_window_is_clamped_and_defaults_to_a_day():
     fake = weather_http(hourly=HOURLY)
     pl = ForecastPipeline(fast(Settings), fake.client())

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import math
 from collections import Counter
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from pydantic import BaseModel, Field
@@ -28,6 +28,24 @@ WMO = {0: "clear sky", 1: "mainly clear", 2: "partly cloudy", 3: "overcast", 45:
        95: "thunderstorm", 96: "thunderstorm with hail", 99: "thunderstorm with heavy hail"}
 TEMP = dict(ge=-90, le=60, allow_inf_nan=False)
 THUNDER = frozenset({95, 96, 99})
+
+#: MET Norway symbol names (without the _day/_night suffix) as the WMO codes the rest of this module speaks.
+_MET_SYMBOLS = {
+    "clearsky": 0, "fair": 1, "partlycloudy": 2, "cloudy": 3, "fog": 45,
+    "lightrain": 61, "rain": 63, "heavyrain": 65, "lightrainshowers": 80, "rainshowers": 81, "heavyrainshowers": 82,
+    "lightsleet": 66, "sleet": 67, "heavysleet": 67, "lightsleetshowers": 66, "sleetshowers": 67, "heavysleetshowers": 67,
+    "lightsnow": 71, "snow": 73, "heavysnow": 75, "lightsnowshowers": 85, "snowshowers": 85, "heavysnowshowers": 86,
+}
+
+
+def met_symbol_code(symbol) -> Optional[int]:
+    """A MET Norway `symbol_code` ("lightrainandthunder", "partlycloudy_night") as a WMO code, or None."""
+    if not isinstance(symbol, str) or not symbol:
+        return None
+    base = symbol.split("_", 1)[0]
+    if "thunder" in base:
+        return 95
+    return _MET_SYMBOLS.get(base)
 
 
 def window_condition(codes: list[int]) -> str:
@@ -133,22 +151,59 @@ class ForecastPipeline(_WeatherBase):
     def empty(self, req: Req, reason: str) -> BaseModel:
         return ForecastResponse(location=clean_query(req.get("location", ""))[:200])
 
-    async def compute(self, req: Req) -> Result:
-        place = await self.place(req.get("location", ""))
-        if place is None:
-            return Result(self.empty(req, "place not found"), degraded=True)
-        hours = self._hours(req)
+    async def _open_meteo_window(self, place: Place, hours: int) -> Optional[tuple[list[float], list[float], list[int]]]:
         d = await self.up.get_json(FORECAST, params={
             "latitude": place.lat, "longitude": place.lon, "timezone": "UTC", "forecast_hours": hours,
             "hourly": "temperature_2m,precipitation_probability,weather_code"})
         h = d.get("hourly") if isinstance(d, dict) else None
         if not isinstance(h, dict):
-            return Result(self.empty(req, "no forecast source answered"), degraded=True)
+            return None
         temps = [t for t in map(_ok, h.get("temperature_2m") or []) if t is not None]
         probs = [p for p in map(_ok, h.get("precipitation_probability") or []) if p is not None]
         codes = [int(c) for c in (h.get("weather_code") or []) if isinstance(c, (int, float)) and int(c) in WMO]
-        if not temps:
-            return Result(self.empty(req, "forecast had no temperatures"), degraded=True)
+        return (temps, probs, codes) if temps else None
+
+    async def _met_no_window(self, place: Place, hours: int) -> Optional[tuple[list[float], list[float], list[int]]]:
+        """The same window from MET Norway when Open-Meteo cannot be reached (it rate-limits shared hosting IPs).
+
+        MET's compact forecast has no precipitation probability, so that stays empty rather than being estimated.
+        """
+        d = await self.up.get_json(MET_NO, params={"lat": round(place.lat, 4), "lon": round(place.lon, 4)})
+        series = ((d or {}).get("properties") or {}).get("timeseries") if isinstance(d, dict) else None
+        if not isinstance(series, list):
+            return None
+        now = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0)
+        end = now + timedelta(hours=hours)
+        temps: list[float] = []
+        codes: list[int] = []
+        for point in series:
+            try:
+                at = datetime.fromisoformat(str(point["time"]).replace("Z", "+00:00"))
+            except (KeyError, ValueError):
+                continue
+            if not (now <= at < end):
+                continue
+            data = point.get("data") or {}
+            t = _ok(((data.get("instant") or {}).get("details") or {}).get("air_temperature"))
+            if t is None:
+                continue
+            temps.append(t)
+            for span in ("next_1_hours", "next_6_hours", "next_12_hours"):
+                code = met_symbol_code(((data.get(span) or {}).get("summary") or {}).get("symbol_code"))
+                if code is not None:
+                    codes.append(code)
+                    break
+        return (temps, [], codes) if temps else None
+
+    async def compute(self, req: Req) -> Result:
+        place = await self.place(req.get("location", ""))
+        if place is None:
+            return Result(self.empty(req, "place not found"), degraded=True)
+        hours = self._hours(req)
+        window = await self._open_meteo_window(place, hours) or await self._met_no_window(place, hours)
+        if window is None:
+            return Result(self.empty(req, "no forecast source answered"), degraded=True)
+        temps, probs, codes = window
         start = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:00 UTC")
         return Result(ForecastResponse(
             location=place.label, when=f"next {hours} hours from {start}",
